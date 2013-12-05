@@ -10,8 +10,9 @@ Getting Started
 ---------------
 
 ```sh
+cd maindemo
 npm install
-browserify maindemo/demo.js -o maindemo/bundle.js
-google-chrome --load-and-launch-app=/home/glen/Dropbox/Experiments/robotics/components/johnny-five/demo
+browserify demo.js -o bundle.js
+google-chrome --load-and-launch-app=`pwd`
 
 ```

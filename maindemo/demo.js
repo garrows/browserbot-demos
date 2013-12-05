@@ -1,4 +1,67 @@
 
+var app = angular.module("JohnnyFiveDemo", []);
+window.app = app;
+
+app.controller("DemoCtrl", function($scope) {
+
+	$scope.five = require("johnny-five");
+	$scope.board = new $scope.five.Board();
+
+	$scope.board.on("ready", function() {
+
+		console.log("BOARD IS READY!");
+
+		$scope.isConnected = true;
+		$scope.$apply();
+
+	});
+
+	$scope.addComponent = function() {
+		switch ($scope.newComponent.type.value) {
+			case "Led":
+				$scope.newComponent.j5Component = new $scope.five.Led($scope.newComponent.pin);
+			break;
+			case "Servo":
+				$scope.newComponent.j5Component = new $scope.five.Servo($scope.newComponent.pin);
+			break;
+			case "Sensor":
+				$scope.newComponent.j5Component = new $scope.five.Sensor({
+					pin: $scope.newComponent.pin,
+					freq: 500
+				});
+				$scope.newComponent.j5Component.on("data", $scope.newComponent.onData($scope));
+				// $scope.newComponent.j5Component.on("data", function(err, val) {
+				// 	console.log("wee", val, err, this.value);
+				// });
+			break;
+		}
+
+		$scope.components.push($scope.newComponent);
+		$scope.newComponent = new Component($scope.data.componentTypes[0]);
+	};
+
+
+	window.$scope = $scope;
+
+	$scope.isConnected = false;
+	$scope.longWait = false;
+	$scope.components = [];
+
+	//Retry info.
+	setTimeout(function() {
+		$scope.longWait = true;
+		$scope.$apply();
+	}, 6000);
+
+	$scope.data = {
+		componentTypes: Component.prototype.types
+	}
+
+	$scope.newComponent = new Component($scope.data.componentTypes[0]);
+
+});
+
+
 function Component(type, pin) {
 	
 	this.type = type ? type: Component.prototype.types[0];
@@ -70,68 +133,3 @@ Component.prototype = {
 	},
 
 };
-
-
-var app = angular.module("JohnnyFiveDemo", []);
-window.app = app;
-
-app.controller("DemoCtrl", function($scope) {
-
-	$scope.five = require("../");
-	$scope.board = new $scope.five.Board();
-
-	$scope.board.on("ready", function() {
-
-		console.log("BOARD IS READY!");
-
-		$scope.isConnected = true;
-		$scope.$apply();
-
-	});
-
-	$scope.addComponent = function() {
-		switch ($scope.newComponent.type.value) {
-			case "Led":
-				$scope.newComponent.j5Component = new $scope.five.Led($scope.newComponent.pin);
-			break;
-			case "Servo":
-				$scope.newComponent.j5Component = new $scope.five.Servo($scope.newComponent.pin);
-			break;
-			case "Sensor":
-				$scope.newComponent.j5Component = new $scope.five.Sensor({
-					pin: $scope.newComponent.pin,
-					freq: 500
-				});
-				$scope.newComponent.j5Component.on("data", $scope.newComponent.onData($scope));
-				// $scope.newComponent.j5Component.on("data", function(err, val) {
-				// 	console.log("wee", val, err, this.value);
-				// });
-			break;
-		}
-
-		$scope.components.push($scope.newComponent);
-		$scope.newComponent = new Component($scope.data.componentTypes[0]);
-	};
-
-
-	window.$scope = $scope;
-
-	$scope.isConnected = false;
-	$scope.longWait = false;
-	$scope.components = [];
-
-	//Retry info.
-	setTimeout(function() {
-		$scope.longWait = true;
-		$scope.$apply();
-	}, 6000);
-
-	$scope.data = {
-		componentTypes: Component.prototype.types
-	}
-
-	$scope.newComponent = new Component($scope.data.componentTypes[0]);
-
-
-
-});

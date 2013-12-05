@@ -1,0 +1,20 @@
+{
+  "name": "browserbot-demo",
+  "description": "Demo of Johnny-Five running in a Chrome App.",
+  "version": "0.0.1",
+  "homepage": "https://github.com/garrows/browserbot-demos",
+  "author": {
+    "name": "Glen Arrowsmith <glen.arrowsmith@gmail.com>",
+    "email": "glen.arrowsmith@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/garrows/browserbot-demos.git"
+  },
+  "bugs": {
+    "url": "https://github.com/garrows/browserbot-demos/issues"
+  },
+  "dependencies": {
+    "johnny-five": "garrows/johnny-five"
+  }
+}

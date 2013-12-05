@@ -1,5 +1,68 @@
 ;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 
+var app = angular.module("JohnnyFiveDemo", []);
+window.app = app;
+
+app.controller("DemoCtrl", function($scope) {
+
+	$scope.five = require("johnny-five");
+	$scope.board = new $scope.five.Board();
+
+	$scope.board.on("ready", function() {
+
+		console.log("BOARD IS READY!");
+
+		$scope.isConnected = true;
+		$scope.$apply();
+
+	});
+
+	$scope.addComponent = function() {
+		switch ($scope.newComponent.type.value) {
+			case "Led":
+				$scope.newComponent.j5Component = new $scope.five.Led($scope.newComponent.pin);
+			break;
+			case "Servo":
+				$scope.newComponent.j5Component = new $scope.five.Servo($scope.newComponent.pin);
+			break;
+			case "Sensor":
+				$scope.newComponent.j5Component = new $scope.five.Sensor({
+					pin: $scope.newComponent.pin,
+					freq: 500
+				});
+				$scope.newComponent.j5Component.on("data", $scope.newComponent.onData($scope));
+				// $scope.newComponent.j5Component.on("data", function(err, val) {
+				// 	console.log("wee", val, err, this.value);
+				// });
+			break;
+		}
+
+		$scope.components.push($scope.newComponent);
+		$scope.newComponent = new Component($scope.data.componentTypes[0]);
+	};
+
+
+	window.$scope = $scope;
+
+	$scope.isConnected = false;
+	$scope.longWait = false;
+	$scope.components = [];
+
+	//Retry info.
+	setTimeout(function() {
+		$scope.longWait = true;
+		$scope.$apply();
+	}, 6000);
+
+	$scope.data = {
+		componentTypes: Component.prototype.types
+	}
+
+	$scope.newComponent = new Component($scope.data.componentTypes[0]);
+
+});
+
+
 function Component(type, pin) {
 	
 	this.type = type ? type: Component.prototype.types[0];
@@ -72,71 +135,7 @@ Component.prototype = {
 
 };
 
-
-var app = angular.module("JohnnyFiveDemo", []);
-window.app = app;
-
-app.controller("DemoCtrl", function($scope) {
-
-	$scope.five = require("../");
-	$scope.board = new $scope.five.Board();
-
-	$scope.board.on("ready", function() {
-
-		console.log("BOARD IS READY!");
-
-		$scope.isConnected = true;
-		$scope.$apply();
-
-	});
-
-	$scope.addComponent = function() {
-		switch ($scope.newComponent.type.value) {
-			case "Led":
-				$scope.newComponent.j5Component = new $scope.five.Led($scope.newComponent.pin);
-			break;
-			case "Servo":
-				$scope.newComponent.j5Component = new $scope.five.Servo($scope.newComponent.pin);
-			break;
-			case "Sensor":
-				$scope.newComponent.j5Component = new $scope.five.Sensor({
-					pin: $scope.newComponent.pin,
-					freq: 500
-				});
-				$scope.newComponent.j5Component.on("data", $scope.newComponent.onData($scope));
-				// $scope.newComponent.j5Component.on("data", function(err, val) {
-				// 	console.log("wee", val, err, this.value);
-				// });
-			break;
-		}
-
-		$scope.components.push($scope.newComponent);
-		$scope.newComponent = new Component($scope.data.componentTypes[0]);
-	};
-
-
-	window.$scope = $scope;
-
-	$scope.isConnected = false;
-	$scope.longWait = false;
-	$scope.components = [];
-
-	//Retry info.
-	setTimeout(function() {
-		$scope.longWait = true;
-		$scope.$apply();
-	}, 6000);
-
-	$scope.data = {
-		componentTypes: Component.prototype.types
-	}
-
-	$scope.newComponent = new Component($scope.data.componentTypes[0]);
-
-
-
-});
-},{"../":12}],2:[function(require,module,exports){
+},{"johnny-five":12}],2:[function(require,module,exports){
 var Board = require("../lib/board.js"),
     events = require("events"),
     util = require("util"),
@@ -439,7 +438,7 @@ module.exports = Accelerometer;
 //
 // http://www.instructables.com/image/F7NMMPEG4PBOJPY/The-Accelerometer.jpg
 
-},{"../lib/board.js":3,"../lib/fn.js":8,"events":51,"util":58}],3:[function(require,module,exports){
+},{"../lib/board.js":3,"../lib/fn.js":8,"events":52,"util":59}],3:[function(require,module,exports){
 var process=require("__browserify_process");var events = require("events"),
     util = require("util"),
     colors = require("colors"),
@@ -447,7 +446,7 @@ var process=require("__browserify_process");var events = require("events"),
     _ = require("lodash"),
     __ = require("../lib/fn.js"),
     Repl = require("../lib/repl.js"),
-    serialport = (chrome && chrome.serial) ? require("browser-serialport") : require("serialport"),
+    serialport = (typeof chrome !== "undefined" && chrome.serial) ? require("browser-serialport") : require("serialport"),
     Pins = require("../lib/board.pins.js"),
     Options = require("../lib/board.options.js"),
     // temporal = require("temporal"),
@@ -1179,7 +1178,7 @@ module.exports = Board;
 // References:
 // http://arduino.cc/en/Main/arduinoBoardUno
 
-},{"../lib/board.options.js":4,"../lib/board.pins.js":5,"../lib/fn.js":8,"../lib/repl.js":23,"__browserify_process":63,"browser-serialport":31,"colors":32,"events":51,"firmata":35,"lodash":37,"serialport":41,"util":58}],4:[function(require,module,exports){
+},{"../lib/board.options.js":4,"../lib/board.pins.js":5,"../lib/fn.js":8,"../lib/repl.js":23,"__browserify_process":64,"browser-serialport":31,"colors":32,"events":52,"firmata":36,"lodash":38,"serialport":42,"util":59}],4:[function(require,module,exports){
 var _ = require("lodash");
 
 /**
@@ -1214,7 +1213,7 @@ function Options( arg ) {
 }
 
 module.exports = Options;
-},{"lodash":37}],5:[function(require,module,exports){
+},{"lodash":38}],5:[function(require,module,exports){
 var MODES,
     Options = require("../lib/board.options.js");
 
@@ -1580,7 +1579,7 @@ util.inherits( Button, events.EventEmitter );
 
 module.exports = Button;
 
-},{"../lib/board.js":3,"../lib/fn.js":8,"events":51,"util":58}],7:[function(require,module,exports){
+},{"../lib/board.js":3,"../lib/fn.js":8,"events":52,"util":59}],7:[function(require,module,exports){
 var Board = require("../lib/board.js"),
     events = require("events"),
     util = require("util"),
@@ -2271,7 +2270,7 @@ module.exports = Compass;
 
 // http://en.wikipedia.org/wiki/Relative_direction
 
-},{"../lib/board.js":3,"../lib/fn.js":8,"events":51,"util":58}],8:[function(require,module,exports){
+},{"../lib/board.js":3,"../lib/fn.js":8,"events":52,"util":59}],8:[function(require,module,exports){
 var lodash = require("lodash"),
     Fn = {
       assign: lodash.assign,
@@ -2375,7 +2374,7 @@ Fn.sleep = function( ms ) {
 
 module.exports = Fn;
 
-},{"lodash":37}],9:[function(require,module,exports){
+},{"lodash":38}],9:[function(require,module,exports){
 var Board = require("../lib/board.js"),
     Servo = require("../lib/servo.js"),
     __ = require("../lib/fn.js");
@@ -2595,7 +2594,7 @@ util.inherits( Gyroscope, events.EventEmitter );
 
 module.exports = Gyroscope;
 
-},{"../lib/board.js":3,"../lib/fn.js":8,"events":51,"util":58}],11:[function(require,module,exports){
+},{"../lib/board.js":3,"../lib/fn.js":8,"events":52,"util":59}],11:[function(require,module,exports){
 var Board = require("../lib/board.js"),
     events = require("events"),
     util = require("util"),
@@ -2782,7 +2781,7 @@ util.inherits( IR, events.EventEmitter );
 
 module.exports = IR;
 
-},{"../lib/board.js":3,"../lib/fn.js":8,"events":51,"util":58}],12:[function(require,module,exports){
+},{"../lib/board.js":3,"../lib/fn.js":8,"events":52,"util":59}],12:[function(require,module,exports){
 /*
  * johnny-five
  * https://github.com/rwldrn/johnny-five
@@ -3027,7 +3026,7 @@ module.exports = Joystick;
 // http://www.parallax.com/Portals/0/Downloads/docs/prod/sens/27800-2-AxisJoystick-v1.2.pdf
 // http://myweb.wit.edu/johnsont/Classes/462/Arduino%20Tutorials.pdf
 
-},{"../lib/board.js":3,"../lib/fn.js":8,"events":51,"util":58}],14:[function(require,module,exports){
+},{"../lib/board.js":3,"../lib/fn.js":8,"events":52,"util":59}],14:[function(require,module,exports){
 // http://www.quinapalus.com/hd44780udg.html
 // http://www.darreltaylor.com/files/CustChar.htm
 
@@ -3737,7 +3736,7 @@ module.exports = LCD;
 
 // http://www.arduino.cc/playground/Code/LCDAPI
 
-},{"../lib/board.js":3,"../lib/fn.js":8,"../lib/lcd-chars.js":14,"__browserify_process":63,"events":51,"util":58}],16:[function(require,module,exports){
+},{"../lib/board.js":3,"../lib/fn.js":8,"../lib/lcd-chars.js":14,"__browserify_process":64,"events":52,"util":59}],16:[function(require,module,exports){
 var Board = require("../lib/board.js");
 
 var priv = new WeakMap(),
@@ -4844,7 +4843,7 @@ LedControl.MATRIX_CHARS = {
 
 module.exports = LedControl;
 
-},{"../lib/board.js":3,"__browserify_process":63}],18:[function(require,module,exports){
+},{"../lib/board.js":3,"__browserify_process":64}],18:[function(require,module,exports){
 var Board = require("../lib/board.js"),
     events = require("events"),
     util = require("util");
@@ -5056,7 +5055,7 @@ module.exports = Motor;
 // References
 // http://arduino.cc/en/Tutorial/SecretsOfArduinoPWM
 
-},{"../lib/board.js":3,"events":51,"util":58}],19:[function(require,module,exports){
+},{"../lib/board.js":3,"events":52,"util":59}],19:[function(require,module,exports){
 var Servo = require("../lib/servo.js"),
     __ = require("../lib/fn.js"),
     DIR_TRANSLATION,
@@ -5358,7 +5357,7 @@ Nodebot.prototype.pivot.translate = function( instruct ) {
 
 module.exports = Nodebot;
 
-},{"../lib/fn.js":8,"../lib/servo.js":25,"temporal":42}],20:[function(require,module,exports){
+},{"../lib/fn.js":8,"../lib/servo.js":25,"temporal":43}],20:[function(require,module,exports){
 var Board = require("../lib/board.js"),
     Descriptor = require("descriptor"),
     __ = require("../lib/fn.js"),
@@ -5641,7 +5640,7 @@ Pin.prototype.mode = function( mode ) {
 
 module.exports = Pin;
 
-},{"../lib/board.js":3,"../lib/fn.js":8,"descriptor":33,"events":51,"util":58}],21:[function(require,module,exports){
+},{"../lib/board.js":3,"../lib/fn.js":8,"descriptor":33,"events":52,"util":59}],21:[function(require,module,exports){
 var Board = require("../lib/board.js"),
     events = require("events"),
     util = require("util");
@@ -5755,7 +5754,7 @@ module.exports = Ping;
 //http://arduinobasics.blogspot.com/2011/05/arduino-uno-flex-sensor-and-leds.html
 //http://protolab.pbworks.com/w/page/19403657/TutorialPings
 
-},{"../lib/board.js":3,"events":51,"util":58}],22:[function(require,module,exports){
+},{"../lib/board.js":3,"events":52,"util":59}],22:[function(require,module,exports){
 var Board = require("../lib/board.js"),
     events = require("events"),
     util = require("util");
@@ -5831,7 +5830,7 @@ module.exports = Pir;
 // More information:
 // http://www.ladyada.net/learn/sensors/pir.html
 
-},{"../lib/board.js":3,"events":51,"util":58}],23:[function(require,module,exports){
+},{"../lib/board.js":3,"events":52,"util":59}],23:[function(require,module,exports){
 var process=require("__browserify_process");var repl = require("repl"),
     events = require("events"),
     util = require("util"),
@@ -5920,7 +5919,7 @@ Repl.isBlocked = false;
 
 module.exports = Repl;
 
-},{"__browserify_process":63,"events":51,"repl":54,"util":58}],24:[function(require,module,exports){
+},{"__browserify_process":64,"events":52,"repl":55,"util":59}],24:[function(require,module,exports){
 var Board = require("../lib/board.js"),
     events = require("events"),
     util = require("util");
@@ -6201,7 +6200,7 @@ module.exports = Sensor;
 // TODO:
 // Update comments/docs
 
-},{"../lib/board.js":3,"events":51,"util":58}],25:[function(require,module,exports){
+},{"../lib/board.js":3,"events":52,"util":59}],25:[function(require,module,exports){
 var Board = require("../lib/board.js"),
     events = require("events"),
     util = require("util"),
@@ -6599,7 +6598,7 @@ module.exports = Servo;
 // http://www.tinkerforge.com/doc/Software/Bricks/Servo_Brick_Python.html#servo-brick-python-api
 // http://www.tinkerforge.com/doc/Software/Bricks/Servo_Brick_Java.html#servo-brick-java-api
 
-},{"../lib/board.js":3,"../lib/fn.js":8,"events":51,"util":58}],26:[function(require,module,exports){
+},{"../lib/board.js":3,"../lib/fn.js":8,"events":52,"util":59}],26:[function(require,module,exports){
 var Board = require("../lib/board.js");
 
 function ShiftRegister( opts ) {
@@ -6740,7 +6739,7 @@ module.exports = Sonar;
 //
 // http://www.sensorpedia.com/blog/how-to-interface-an-ultrasonic-rangefinder-with-sensorpedia-via-twitter-guide-2/
 
-},{"../lib/board.js":3,"events":51,"util":58}],28:[function(require,module,exports){
+},{"../lib/board.js":3,"events":52,"util":59}],28:[function(require,module,exports){
 var Board = require("../lib/board.js"),
   events = require("events"),
   util = require("util");
@@ -7138,7 +7137,7 @@ Step.prototype.move = function( steps, dir, speed, accel, decel, callback ) {
 
 module.exports = Stepper;
 
-},{"../lib/board.js":3,"events":51,"util":58}],29:[function(require,module,exports){
+},{"../lib/board.js":3,"events":52,"util":59}],29:[function(require,module,exports){
 var Board = require("../lib/board.js"),
     __ = require("../lib/fn.js"),
     events = require("events"),
@@ -7256,7 +7255,7 @@ util.inherits( Switch, events.EventEmitter );
 
 module.exports = Switch;
 
-},{"../lib/board.js":3,"../lib/fn.js":8,"events":51,"util":58}],30:[function(require,module,exports){
+},{"../lib/board.js":3,"../lib/fn.js":8,"events":52,"util":59}],30:[function(require,module,exports){
 var Board = require("../lib/board.js"),
     events = require("events"),
     util = require("util"),
@@ -7943,7 +7942,7 @@ Wii.Classic = function( opts ) {
 
 module.exports = Wii;
 
-},{"../lib/board.js":3,"../lib/fn.js":8,"events":51,"util":58}],31:[function(require,module,exports){
+},{"../lib/board.js":3,"../lib/fn.js":8,"events":52,"util":59}],31:[function(require,module,exports){
 "use strict";
 
 function SerialPort(path, options, openImmediately) {
@@ -8855,6 +8854,55 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
   typeof exports
 ));
 },{}],35:[function(require,module,exports){
+/**
+ * "Inspired" by Encoder7Bit.h/Encoder7Bit.cpp in the
+ * Firmata source code.
+ */
+module.exports = {
+    to7BitArray: function(data) {
+        var shift = 0;
+        var previous = 0;
+        var output = [];
+
+        data.forEach(function(byte) {
+            if (shift == 0) {
+                output.push(byte & 0x7f)
+                shift++;
+                previous = byte >> 7;
+            } else {
+                output.push(((byte << shift) & 0x7f) | previous);
+                if (shift == 6) {
+                    output.push(byte >> 1);
+                    shift = 0;
+                } else {
+                    shift++;
+                    previous = byte >> (8 - shift);
+                }
+            }
+        })
+
+        if (shift > 0) {
+            output.push(previous);
+        }
+
+        return output;
+    },
+    from7BitArray: function(encoded) {
+        var expectedBytes = (encoded.length) * 7 >> 3;
+        var decoded = [];
+
+        for (var i = 0; i < expectedBytes ; i++) {
+            var j = i << 3;
+            var pos = parseInt(j/7);
+            var shift = j % 7;
+            decoded[i] = (encoded[pos] >> shift) | ((encoded[pos+1] << (7 - shift)) & 0xFF);
+        }
+
+        return decoded;
+    }
+}
+
+},{}],36:[function(require,module,exports){
 var Buffer=require("__browserify_Buffer").Buffer;/**
  * @author Julian Gautier
  */
@@ -8864,8 +8912,26 @@ var Buffer=require("__browserify_Buffer").Buffer;/**
  */
 
 var util = require('util'),
-    events = require('events')
-    SerialPort = (chrome && chrome.serial) ? require('browser-serialport').SerialPort : require('serialport').SerialPort;
+    events = require('events'),
+    chrome = chrome || undefined,
+    Encoder7Bit = require('./encoder7bit'),
+    OneWireUtils = require('./onewireutils'),
+    SerialPort = null;
+
+try {
+    if (typeof chrome !== "undefined" && chrome.serial) {
+        SerialPort = require('browser-serialport').SerialPort;
+    } else {
+        SerialPort = require('serialport').SerialPort;
+    }
+} catch (err) {
+    SerialPort = null;
+}
+
+if (SerialPort == null) {
+    console.log("It looks like serialport didn't compile properly. This is a common problem and its fix is well documented here https://github.com/voodootikigod/node-serialport#to-install");
+    throw "Missing serialport dependency";
+}
 
 /**
  * constants
@@ -8894,14 +8960,26 @@ var PIN_MODE = 0xF4,
     PULSE_OUT = 0x73,
     PULSE_IN = 0x74,
     SAMPLING_INTERVAL = 0x7A,
-    STEPPER = 0x72;
+    STEPPER = 0x72,
+    ONEWIRE_DATA = 0x73,
 
+    ONEWIRE_CONFIG_REQUEST = 0x41,
+    ONEWIRE_SEARCH_REQUEST = 0x40,
+    ONEWIRE_SEARCH_REPLY = 0x42,
+    ONEWIRE_SEARCH_ALARMS_REQUEST = 0x44,
+    ONEWIRE_SEARCH_ALARMS_REPLY = 0x45,
+    ONEWIRE_READ_REPLY = 0x43,
+    ONEWIRE_RESET_REQUEST_BIT = 0x01,
+    ONEWIRE_READ_REQUEST_BIT = 0x08,
+    ONEWIRE_DELAY_REQUEST_BIT = 0x10,
+    ONEWIRE_WRITE_REQUEST_BIT = 0x20,
+    ONEWIRE_WITHDATA_REQUEST_BITS = 0x3C;
 
-    /**
-     * MIDI_RESPONSE contains functions to be called when we receive a MIDI message from the arduino.
-     * used as a switch object as seen here http://james.padolsey.com/javascript/how-to-avoid-switch-case-syndrome/
-     * @private
-     */
+/**
+* MIDI_RESPONSE contains functions to be called when we receive a MIDI message from the arduino.
+* used as a switch object as seen here http://james.padolsey.com/javascript/how-to-avoid-switch-case-syndrome/
+* @private
+*/
 
 var MIDI_RESPONSE = {};
 
@@ -8911,7 +8989,7 @@ var MIDI_RESPONSE = {};
  * @param {Board} board the current arduino board we are working with.
  */
 
-MIDI_RESPONSE[REPORT_VERSION] = function(board) {
+MIDI_RESPONSE[REPORT_VERSION] = function (board) {
     board.version.major = board.currentBuffer[1];
     board.version.minor = board.currentBuffer[2];
     for (var i = 0; i < 16; i++) {
@@ -8927,7 +9005,7 @@ MIDI_RESPONSE[REPORT_VERSION] = function(board) {
  * @param {Board} board the current arduino board we are working with.
  */
 
-MIDI_RESPONSE[ANALOG_MESSAGE] = function(board) {
+MIDI_RESPONSE[ANALOG_MESSAGE] = function (board) {
     var value = board.currentBuffer[1] | (board.currentBuffer[2] << 7);
     var port = board.currentBuffer[0] & 0x0F;
     if (board.pins[board.analogPins[port]]) {
@@ -8946,7 +9024,7 @@ MIDI_RESPONSE[ANALOG_MESSAGE] = function(board) {
  * @param {Board} board the current arduino board we are working with.
  */
 
-MIDI_RESPONSE[DIGITAL_MESSAGE] = function(board) {
+MIDI_RESPONSE[DIGITAL_MESSAGE] = function (board) {
     var port = (board.currentBuffer[0] & 0x0F);
     var portValue = board.currentBuffer[1] | (board.currentBuffer[2] << 7);
     for (var i = 0; i < 8; i++) {
@@ -8977,14 +9055,13 @@ var SYSEX_RESPONSE = {};
  * @param {Board} board the current arduino board we are working with.
  */
 
-SYSEX_RESPONSE[QUERY_FIRMWARE] = function(board) {
+SYSEX_RESPONSE[QUERY_FIRMWARE] = function (board) {
     var firmwareBuf = [];
     board.firmware.version = {};
     board.firmware.version.major = board.currentBuffer[2];
     board.firmware.version.minor = board.currentBuffer[3];
     for (var i = 4, length = board.currentBuffer.length - 2; i < length; i += 2) {
         firmwareBuf.push((board.currentBuffer[i] & 0x7F) | ((board.currentBuffer[i + 1] & 0x7F) << 7));
-
     }
 
 
@@ -8998,7 +9075,7 @@ SYSEX_RESPONSE[QUERY_FIRMWARE] = function(board) {
  * @param {Board} board the current arduino board we are working with.
  */
 
-SYSEX_RESPONSE[CAPABILITY_RESPONSE] = function(board) {
+SYSEX_RESPONSE[CAPABILITY_RESPONSE] = function (board) {
     var supportedModes = 0;
 
     function pushModes(modesArray, mode) {
@@ -9013,7 +9090,7 @@ SYSEX_RESPONSE[CAPABILITY_RESPONSE] = function(board) {
             Object.keys(board.MODES).forEach(pushModes.bind(null, modesArray));
             board.pins.push({
                 supportedModes: modesArray,
-                mode: board.MODES.OUTPUT,
+                mode: board.MODES.UNKNOWN,
                 value : 0,
                 report: 1
             });
@@ -9035,7 +9112,7 @@ SYSEX_RESPONSE[CAPABILITY_RESPONSE] = function(board) {
  * @param {Board} board the current arduino board we are working with.
  */
 
-SYSEX_RESPONSE[PIN_STATE_RESPONSE] = function(board) {
+SYSEX_RESPONSE[PIN_STATE_RESPONSE] = function (board) {
     var pin = board.currentBuffer[2];
     board.pins[pin].mode = board.currentBuffer[3];
     board.pins[pin].value = board.currentBuffer[4];
@@ -9054,7 +9131,7 @@ SYSEX_RESPONSE[PIN_STATE_RESPONSE] = function(board) {
  * @param {Board} board the current arduino board we are working with.
  */
 
-SYSEX_RESPONSE[ANALOG_MAPPING_RESPONSE] = function(board) {
+SYSEX_RESPONSE[ANALOG_MAPPING_RESPONSE] = function (board) {
     var pin = 0;
     var currentValue;
     for (var i = 2; i < board.currentBuffer.length - 1; i++) {
@@ -9075,7 +9152,7 @@ SYSEX_RESPONSE[ANALOG_MAPPING_RESPONSE] = function(board) {
  * @param {Board} board the current arduino board we are working with.
  */
 
-SYSEX_RESPONSE[I2C_REPLY] = function(board) {
+SYSEX_RESPONSE[I2C_REPLY] = function (board) {
     var replyBuffer = [];
     var slaveAddress = (board.currentBuffer[2] & 0x7F) | ((board.currentBuffer[3] & 0x7F) << 7);
     var register = (board.currentBuffer[4] & 0x7F) | ((board.currentBuffer[5] & 0x7F) << 7);
@@ -9085,19 +9162,54 @@ SYSEX_RESPONSE[I2C_REPLY] = function(board) {
     board.emit('I2C-reply-' + slaveAddress, replyBuffer);
 };
 
+SYSEX_RESPONSE[ONEWIRE_DATA] = function(board) {
+    var subCommand = board.currentBuffer[2];
+
+    if(!SYSEX_RESPONSE[subCommand]) {
+        return;
+    }
+
+    SYSEX_RESPONSE[subCommand](board);
+};
+
+SYSEX_RESPONSE[ONEWIRE_SEARCH_REPLY] = function(board) {
+    var pin = board.currentBuffer[3];
+    var replyBuffer = board.currentBuffer.slice(4, board.currentBuffer.length -1);
+
+    board.emit('1-wire-search-reply-' + pin, OneWireUtils.readDevices(replyBuffer));
+};
+
+SYSEX_RESPONSE[ONEWIRE_SEARCH_ALARMS_REPLY] = function(board) {
+    var pin = board.currentBuffer[3];
+    var replyBuffer = board.currentBuffer.slice(4, board.currentBuffer.length -1);
+
+    board.emit('1-wire-search-alarms-reply-' + pin, OneWireUtils.readDevices(replyBuffer));
+};
+
+SYSEX_RESPONSE[ONEWIRE_READ_REPLY] = function(board) {
+    var encoded = board.currentBuffer.slice(4, board.currentBuffer.length -1);
+    var decoded = Encoder7Bit.from7BitArray(encoded);
+    var correlationId = (decoded[1] << 8) | decoded[0];
+
+    board.emit('1-wire-read-reply-' + correlationId, decoded.slice(2));
+};
+
 /**
  * Handles a STRING_DATA response and logs the string to the console.
  * @private
  * @param {Board} board the current arduino board we are working with.
  */
 
-SYSEX_RESPONSE[STRING_DATA] = function(board) {
-    board.emit('string',new Buffer(board.currentBuffer.slice(2, -1)).toString('utf8'));
+SYSEX_RESPONSE[STRING_DATA] = function (board) {
+    var string = new Buffer(board.currentBuffer.slice(2, -1)).toString('utf8').replace(/\0/g, '');
+    board.emit('string', string);
 };
+
 /**
  * Response from pulseIn
  */
-SYSEX_RESPONSE[PULSE_IN] = function(board){
+
+SYSEX_RESPONSE[PULSE_IN] = function (board){
     var pin = (board.currentBuffer[2] & 0x7F) | ((board.currentBuffer[3] & 0x7F) << 7);
     var durationBuffer = [
         (board.currentBuffer[4] & 0x7F) | ((board.currentBuffer[5] & 0x7F) << 7),
@@ -9116,7 +9228,8 @@ SYSEX_RESPONSE[PULSE_IN] = function(board){
  * Handles the message from a stepper completing move
  * @param {Board} board
  */
-SYSEX_RESPONSE[STEPPER] = function(board) {
+
+SYSEX_RESPONSE[STEPPER] = function (board) {
     var deviceNum = board.currentBuffer[2];
     board.emit('stepper-done-'+deviceNum, true);
 };
@@ -9138,128 +9251,155 @@ SYSEX_RESPONSE[STEPPER] = function(board) {
  * @property {SerialPort} sp The serial port object used to communicate with the arduino.
  */
 var Board = function(port, options, callback) {
-        events.EventEmitter.call(this);
-        if (typeof options === 'function') {
-            callback = options;
-            options = {
-                reportVersionTimeout: 5000
-            };
+    events.EventEmitter.call(this);
+    if (typeof options === 'function') {
+        callback = options;
+        options = {
+            reportVersionTimeout: 5000
+        };
+    }
+    var board = this;
+    this.MODES = {
+        INPUT: 0x00,
+        OUTPUT: 0x01,
+        ANALOG: 0x02,
+        PWM: 0x03,
+        SERVO: 0x04,
+        SHIFT: 0x05,
+        I2C: 0x06,
+        ONEWIRE: 0x07,
+        STEPPER: 0x08,
+        IGNORE: 0x7F,
+        UNKOWN: 0x10
+    };
+
+    this.I2C_MODES = {
+        WRITE: 0x00,
+        READ: 1,
+        CONTINUOUS_READ: 2,
+        STOP_READING: 3
+    };
+
+    this.STEPPER = {
+        TYPE: {
+            DRIVER: 1,
+            TWO_WIRE: 2,
+            FOUR_WIRE: 4
+        },
+        RUNSTATE: {
+            STOP: 0,
+            ACCEL: 1,
+            DECEL: 2,
+            RUN: 3
+        },
+        DIRECTION: {
+            CCW: 0,
+            CW: 1
         }
-        var board = this;
-        this.MODES = {
-            INPUT: 0x00,
-            OUTPUT: 0x01,
-            ANALOG: 0x02,
-            PWM: 0x03,
-            SERVO: 0x04
-        };
-        this.I2C_MODES = {
-            WRITE: 0x00,
-            READ: 1,
-            CONTINUOUS_READ: 2,
-            STOP_READING: 3
-        };
-        this.STEPPER = {
-            TYPE: {
-                DRIVER: 1,
-                TWO_WIRE: 2,
-                FOUR_WIRE: 4
-            },
-            RUNSTATE: {
-                STOP: 0,
-                ACCEL: 1,
-                DECEL: 2,
-                RUN: 3
-            },
-            DIRECTION: {
-                CCW: 0,
-                CW: 1
-            }
-        };
-        this.HIGH = 1;
-        this.LOW = 0;
-        this.pins = [];
-        this.analogPins = [];
-        this.version = {};
-        this.firmware = {};
-        this.currentBuffer = [];
-        this.versionReceived = false;
-        
-        if(typeof port === 'object'){
-            this.sp = port;
-        } else {
-            this.sp = new SerialPort(port, {
-                baudrate: 57600,
-                buffersize: 1
-            });
-        }
-        this.sp.on('error', function(string) {
-            callback(string);
+    };
+
+    this.HIGH = 1;
+    this.LOW = 0;
+    this.pins = [];
+    this.analogPins = [];
+    this.version = {};
+    this.firmware = {};
+    this.currentBuffer = [];
+    this.versionReceived = false;
+
+    if(typeof port === 'object'){
+        this.sp = port;
+    } else {
+        this.sp = new SerialPort(port, {
+            baudrate: 57600,
+            buffersize: 1
         });
+    }
 
-        this.sp.on('data', function(data) {
-            var byt, cmd;
+    this.sp.on('error', function(string) {
+        if (typeof callback === 'function') {
+            callback(string);
+        }
+    });
 
-            if (!board.versionReceived && data[0] !== REPORT_VERSION) {
-                return;
+    this.sp.on('data', function(data) {
+        var byt, cmd;
+
+        if (!board.versionReceived && data[0] !== REPORT_VERSION) {
+            return;
+        } else {
+            board.versionReceived = true;
+        }
+
+        for (var i = 0; i < data.length; i++) {
+            byt = data[i];
+            // we dont want to push 0 as the first byte on our buffer
+            if (board.currentBuffer.length === 0 && byt === 0) {
+                continue;
             } else {
-                board.versionReceived = true;
-            }
+                board.currentBuffer.push(byt);
 
-            for (var i = 0; i < data.length; i++) {
-                byt = data[i];
-                // we dont want to push 0 as the first byte on our buffer
-                if (board.currentBuffer.length === 0 && byt === 0) {
-                    continue;
-                } else {
-                    board.currentBuffer.push(byt);
+                // [START_SYSEX, ... END_SYSEX]
+                if (board.currentBuffer[0] === START_SYSEX &&
+                    SYSEX_RESPONSE[board.currentBuffer[1]] &&
+                    board.currentBuffer[board.currentBuffer.length - 1] === END_SYSEX) {
 
-                    // [START_SYSEX, ... END_SYSEX]
-                    if (board.currentBuffer[0] === START_SYSEX &&
-                        SYSEX_RESPONSE[board.currentBuffer[1]] &&
-                        board.currentBuffer[board.currentBuffer.length - 1] === END_SYSEX) {
+                    SYSEX_RESPONSE[board.currentBuffer[1]](board);
+                    board.currentBuffer.length = 0;
+                }
 
-                        SYSEX_RESPONSE[board.currentBuffer[1]](board);
-                        board.currentBuffer.length = 0;
+                // There are 3 bytes in the buffer and the first is not START_SYSEX:
+                // Might have a MIDI Command
+                if (board.currentBuffer.length === 3 && board.currentBuffer[0] !== START_SYSEX) {
+                    //commands under 0xF0 we have a multi byte command
+                    if (board.currentBuffer[0] < 240) {
+                        cmd = board.currentBuffer[0] & 0xF0;
+                    } else {
+                        cmd = board.currentBuffer[0];
                     }
 
-                    // There are 3 bytes in the buffer and the first is not START_SYSEX:
-                    // Might have a MIDI Command
-                    if (board.currentBuffer.length === 3 && board.currentBuffer[0] !== START_SYSEX) {
-                        //commands under 0xF0 we have a multi byte command
-                        if (board.currentBuffer[0] < 240) {
-                            cmd = board.currentBuffer[0] & 0xF0;
-                        } else {
-                            cmd = board.currentBuffer[0];
-                        }
-
-                        if (MIDI_RESPONSE[cmd]) {
-                            MIDI_RESPONSE[cmd](board);
-                            board.currentBuffer.length = 0;
-                        }
+                    if (MIDI_RESPONSE[cmd]) {
+                        MIDI_RESPONSE[cmd](board);
+                        board.currentBuffer.length = 0;
+                    } else {
+                        // A bad serial read must have happened. 
+                        // Reseting the buffer will allow recovery.
+                        board.currentBuffer.length = 0;
                     }
                 }
             }
-        });
-        // if we have not received the version in the timeout  ask for it
-        this.reportVersionTimeoutId = setTimeout(function () {
-            if (this.versionReceived === false) {
-                this.reportVersion(function () {});
-                this.queryFirmware(function () {});
+        }
+    });
+    // if we have not received the version in the timeout  ask for it
+    this.reportVersionTimeoutId = setTimeout(function () {
+        if (this.versionReceived === false) {
+            this.reportVersion(function () {});
+            this.queryFirmware(function () {});
+        }
+    }.bind(this), options.reportVersionTimeout);
+    board.once('reportversion', function () {
+        clearTimeout(board.reportVersionTimeoutId);
+        board.versionReceived = true;
+        board.once('queryfirmware', function () {
+            if(options.skipCapabilities) {
+                board.emit('ready');
+                if (typeof callback === 'function') {
+                    callback();
+                }
+                return;
             }
-        }.bind(this), options.reportVersionTimeout);
-        board.once('reportversion', function () {
-            clearTimeout(board.reportVersionTimeoutId);
-            board.versionReceived = true;
-            board.once('queryfirmware', function () {
-                board.queryCapabilities(function() {
-                    board.queryAnalogMapping(function() {
+            board.queryCapabilities(function() {
+                board.queryAnalogMapping(function() {
+                    board.emit('ready');
+                    if(typeof callback === 'function') {
                         callback();
-                    });
+                    }
                 });
             });
         });
-    };
+    });
+};
+
 util.inherits(Board, events.EventEmitter);
 
 /**
@@ -9277,7 +9417,7 @@ Board.prototype.reportVersion = function(callback) {
  * @param {function} callback A function to be called when the arduino has reported its firmware version.
  */
 
-Board.prototype.queryFirmware = function(callback) {
+Board.prototype.queryFirmware = function (callback) {
     this.once('queryfirmware', callback);
     this.sp.write(new Buffer([START_SYSEX, QUERY_FIRMWARE, END_SYSEX]));
 };
@@ -9288,7 +9428,7 @@ Board.prototype.queryFirmware = function(callback) {
  * @param {function} callback A function to call when we have the analag data.
  */
 
-Board.prototype.analogRead = function(pin, callback) {
+Board.prototype.analogRead = function (pin, callback) {
     this.addListener('analog-read-' + pin, callback);
 };
 
@@ -9298,7 +9438,7 @@ Board.prototype.analogRead = function(pin, callback) {
  * @param {nubmer} value The data to write to the pin between 0 and 255.
  */
 
-Board.prototype.analogWrite = function(pin, value) {
+Board.prototype.analogWrite = function (pin, value) {
     this.pins[pin].value = value;
     this.sp.write(new Buffer([ANALOG_MESSAGE | pin, value & 0x7F, (value >> 7) & 0x7F]));
 };
@@ -9309,7 +9449,7 @@ Board.prototype.analogWrite = function(pin, value) {
  * @param {number} value The degrees to move the servo to.
  */
 
-Board.prototype.servoWrite = function(pin, value) {
+Board.prototype.servoWrite = function (pin, value) {
     this.analogWrite.apply(this, arguments);
 };
 
@@ -9319,7 +9459,7 @@ Board.prototype.servoWrite = function(pin, value) {
  * @param {number} mode The mode you want to set. Must be one of board.MODES
  */
 
-Board.prototype.pinMode = function(pin, mode) {
+Board.prototype.pinMode = function (pin, mode) {
     this.pins[pin].mode = mode;
     this.sp.write(new Buffer([PIN_MODE, pin, mode]));
 };
@@ -9330,7 +9470,7 @@ Board.prototype.pinMode = function(pin, mode) {
  * @param {value} value The value you want to write. Must be board.HIGH or board.LOW
  */
 
-Board.prototype.digitalWrite = function(pin, value) {
+Board.prototype.digitalWrite = function (pin, value) {
     var port = Math.floor(pin / 8);
     var portValue = 0;
     this.pins[pin].value = value;
@@ -9348,7 +9488,7 @@ Board.prototype.digitalWrite = function(pin, value) {
  * @param {function} callback The function to call when data has been received
  */
 
-Board.prototype.digitalRead = function(pin, callback) {
+Board.prototype.digitalRead = function (pin, callback) {
     this.addListener('digital-read-' + pin, callback);
 };
 
@@ -9367,7 +9507,7 @@ Board.prototype.queryCapabilities = function(callback) {
  * @param {function} callback A function to call when we receive the pin mappings.
  */
 
-Board.prototype.queryAnalogMapping = function(callback) {
+Board.prototype.queryAnalogMapping = function (callback) {
     this.once('analog-mapping-query', callback);
     this.sp.write(new Buffer([START_SYSEX, ANALOG_MAPPING_QUERY, END_SYSEX]));
 };
@@ -9378,19 +9518,39 @@ Board.prototype.queryAnalogMapping = function(callback) {
  * @param {function} callback A function to call when we receive the pin state.
  */
 
-Board.prototype.queryPinState = function(pin, callback) {
+Board.prototype.queryPinState = function (pin, callback) {
     this.once('pin-state-' + pin, callback);
     this.sp.write(new Buffer([START_SYSEX, PIN_STATE_QUERY, pin, END_SYSEX]));
 };
+
 /**
  * Sends a I2C config request to the arduino board with an optional
  * value in microseconds to delay an I2C Read.  Must be called before
  * an I2C Read or Write
  * @param {number} delay in microseconds to set for I2C Read
  */
-Board.prototype.sendI2CConfig=function(delay){
-  delay = delay || 0;
-  this.sp.write(new Buffer([START_SYSEX,I2C_CONFIG,(delay & 0xFF),((delay >> 8) & 0xFF),END_SYSEX]));
+
+Board.prototype.sendI2CConfig = function(delay){
+    delay = delay || 0;
+    this.sp.write(new Buffer([START_SYSEX,I2C_CONFIG,(delay & 0xFF),((delay >> 8) & 0xFF),END_SYSEX]));
+};
+
+/**
+ * Sends a string to the arduino
+ * @param {String} string to send to the device
+ */
+
+Board.prototype.sendString = function(string) {
+    var bytes = new Buffer(string + '\0', 'utf8');
+    var data = [];
+    data.push(START_SYSEX);
+    data.push(STRING_DATA);
+    for (var i = 0, length = bytes.length; i < length; i++) {
+        data.push(bytes[i] & 0x7F);
+        data.push((bytes[i] >> 7) & 0x7F);
+    }
+    data.push(END_SYSEX);
+    this.sp.write(data);
 };
 
 /**
@@ -9399,7 +9559,7 @@ Board.prototype.sendI2CConfig=function(delay){
  * @param {Array} bytes The bytes to send to the device
  */
 
-Board.prototype.sendI2CWriteRequest = function(slaveAddress, bytes) {
+Board.prototype.sendI2CWriteRequest = function (slaveAddress, bytes) {
     var data = [];
     bytes = bytes || [];
     data.push(START_SYSEX);
@@ -9421,26 +9581,191 @@ Board.prototype.sendI2CWriteRequest = function(slaveAddress, bytes) {
  * @param {function} callback A function to call when we have received the bytes.
  */
 
-Board.prototype.sendI2CReadRequest = function(slaveAddress, numBytes, callback) {
+Board.prototype.sendI2CReadRequest = function (slaveAddress, numBytes, callback) {
     this.sp.write(new Buffer([START_SYSEX, I2C_REQUEST, slaveAddress, this.I2C_MODES.READ << 3, numBytes & 0x7F, (numBytes >> 7) & 0x7F, END_SYSEX]));
     this.once('I2C-reply-' + slaveAddress, callback);
+};
+
+/**
+ * Configure the passed pin as the controller in a 1-wire bus.
+ * Pass as enableParasiticPower true if you want the data pin to power the bus.
+ * @param pin
+ * @param enableParasiticPower
+ */
+Board.prototype.sendOneWireConfig = function(pin, enableParasiticPower) {
+    this.sp.write(new Buffer([START_SYSEX, ONEWIRE_DATA, ONEWIRE_CONFIG_REQUEST, pin, enableParasiticPower ? 0x01 : 0x00, END_SYSEX]));
+};
+
+/**
+ * Searches for 1-wire devices on the bus.  The passed callback should accept
+ * and error argument and an array of device identifiers.
+ * @param pin
+ * @param callback
+ */
+Board.prototype.sendOneWireSearch = function(pin, callback) {
+    this._sendOneWireSearch(ONEWIRE_SEARCH_REQUEST, '1-wire-search-reply-' + pin, pin, callback);
+};
+
+/**
+ * Searches for 1-wire devices on the bus in an alarmed state.  The passed callback
+ * should accept and error argument and an array of device identifiers.
+ * @param pin
+ * @param callback
+ */
+Board.prototype.sendOneWireAlarmsSearch = function(pin, callback) {
+    this._sendOneWireSearch(ONEWIRE_SEARCH_ALARMS_REQUEST, '1-wire-search-alarms-reply-' + pin, pin, callback);
+};
+
+Board.prototype._sendOneWireSearch = function(type, event, pin, callback) {
+    this.sp.write(new Buffer([START_SYSEX, ONEWIRE_DATA, type, pin, END_SYSEX]));
+
+    var searchTimeout = setTimeout(function() {
+        callback(new Error("1-Wire device search timeout - are you running ConfigurableFirmata?"));
+    }, 5000);
+    this.once(event, function(devices) {
+        clearTimeout(searchTimeout);
+
+        callback(null, devices);
+    });
+};
+
+/**
+ * Reads data from a device on the bus and invokes the passed callback.
+ *
+ * N.b. ConfigurableFirmata will issue the 1-wire select command internally.
+ * @param pin
+ * @param device
+ * @param numBytesToRead
+ * @param callback
+ */
+Board.prototype.sendOneWireRead = function(pin, device, numBytesToRead, callback) {
+    var correlationId = Math.floor(Math.random() * 255);
+    var readTimeout = setTimeout(function() {
+        callback(new Error("1-Wire device read timeout - are you running ConfigurableFirmata?"));
+    }, 5000);
+    this._sendOneWireRequest(pin, ONEWIRE_READ_REQUEST_BIT, device, numBytesToRead, correlationId, null, null, '1-wire-read-reply-' + correlationId, function(data) {
+        clearTimeout(readTimeout);
+
+        callback(null, data);
+    });
+};
+
+/**
+ * Resets all devices on the bus.
+ * @param pin
+ */
+Board.prototype.sendOneWireReset = function(pin) {
+    this._sendOneWireRequest(pin, ONEWIRE_RESET_REQUEST_BIT);
+};
+
+/**
+ * Writes data to the bus to be received by the passed device.  The device
+ * should be obtained from a previous call to sendOneWireSearch.
+ *
+ * N.b. ConfigurableFirmata will issue the 1-wire select command internally.
+ * @param pin
+ * @param device
+ * @param data
+ */
+Board.prototype.sendOneWireWrite = function(pin, device, data) {
+    this._sendOneWireRequest(pin, ONEWIRE_WRITE_REQUEST_BIT, device, null, null, null, Array.isArray(data) ? data : [data]);
+};
+
+/**
+ * Tells firmata to not do anything for the passed amount of ms.  For when you
+ * need to give a device attached to the bus time to do a calculation.
+ * @param pin
+ */
+Board.prototype.sendOneWireDelay = function(pin, delay) {
+    this._sendOneWireRequest(pin, ONEWIRE_DELAY_REQUEST_BIT, null, null, null, delay);
+};
+
+/**
+ * Sends the passed data to the passed device on the bus, reads the specified
+ * number of bytes and invokes the passed callback.
+ *
+ * N.b. ConfigurableFirmata will issue the 1-wire select command internally.
+ * @param pin
+ * @param device
+ * @param data
+ * @param numBytesToRead
+ * @param callback
+ */
+Board.prototype.sendOneWireWriteAndRead = function(pin, device, data, numBytesToRead, callback) {
+    var correlationId = Math.floor(Math.random() * 255);
+    var readTimeout = setTimeout(function() {
+        callback(new Error("1-Wire device read timeout - are you running ConfigurableFirmata?"));
+    }, 5000);
+    this._sendOneWireRequest(pin, ONEWIRE_WRITE_REQUEST_BIT | ONEWIRE_READ_REQUEST_BIT, device, numBytesToRead, correlationId, null, Array.isArray(data) ? data : [data], '1-wire-read-reply-' + correlationId, function(data) {
+        clearTimeout(readTimeout);
+
+        callback(null, data);
+    });
+};
+
+// see http://firmata.org/wiki/Proposals#OneWire_Proposal
+Board.prototype._sendOneWireRequest = function(pin, subcommand, device, numBytesToRead, correlationId, delay, dataToWrite, event, callback) {
+    var bytes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    if(device || numBytesToRead || correlationId || delay || dataToWrite) {
+        subcommand = subcommand | ONEWIRE_WITHDATA_REQUEST_BITS;
+    }
+
+    if(device) {
+        bytes.splice.apply(bytes, [0, 8].concat(device));
+    }
+
+    if(numBytesToRead) {
+        bytes[8] = numBytesToRead & 0xFF;
+        bytes[9] = (numBytesToRead >> 8) & 0xFF;
+    }
+
+    if(correlationId) {
+        bytes[10] = correlationId & 0xFF;
+        bytes[11] = (correlationId >> 8) & 0xFF;
+    }
+
+    if(delay) {
+        bytes[12] = delay & 0xFF;
+        bytes[13] = (delay >> 8) & 0xFF;
+        bytes[14] = (delay >> 16) & 0xFF;
+        bytes[15] = (delay >> 24) & 0xFF;
+    }
+
+    if(dataToWrite) {
+        dataToWrite.forEach(function(byte) {
+            bytes.push(byte);
+        });
+    }
+
+    var output = [START_SYSEX, ONEWIRE_DATA, subcommand, pin];
+    output = output.concat(Encoder7Bit.to7BitArray(bytes));
+    output.push(END_SYSEX);
+
+    this.sp.write(new Buffer(output));
+
+    if(event && callback) {
+        this.once(event, callback);
+    }
 };
 
 /**
  * Set sampling interval in millis. Default is 19 ms
  * @param {number} interval The sampling interval in ms > 10
  */
-Board.prototype.setSamplingInterval = function(interval) {
+
+Board.prototype.setSamplingInterval = function (interval) {
     var safeint = interval < 10 ? 10 : (interval > 65535 ? 65535 : interval); // constrained
     this.sp.write(new Buffer([START_SYSEX, SAMPLING_INTERVAL, (safeint & 0xFF),((safeint >> 8) & 0xFF), END_SYSEX]));
 };
 
 /**
-  * Set reporting on pin
-  * @param {number} pin The pin to turn on/off reporting
-  * @param {number} value Binary value to turn reporting on/off
-  */
-Board.prototype.reportAnalogPin = function(pin, value) {
+ * Set reporting on pin
+ * @param {number} pin The pin to turn on/off reporting
+ * @param {number} value Binary value to turn reporting on/off
+ */
+
+Board.prototype.reportAnalogPin = function (pin, value) {
     if(value === 0 || value === 1) {
         this.pins[this.analogPins[pin]].report = value;
         this.sp.write(new Buffer([REPORT_ANALOG | pin, value]));
@@ -9448,11 +9773,12 @@ Board.prototype.reportAnalogPin = function(pin, value) {
 };
 
 /**
-  * Set reporting on pin
-  * @param {number} pin The pin to turn on/off reporting
-  * @param {number} value Binary value to turn reporting on/off
-  */
-Board.prototype.reportDigitalPin = function(pin, value) {
+ * Set reporting on pin
+ * @param {number} pin The pin to turn on/off reporting
+ * @param {number} value Binary value to turn reporting on/off
+ */
+
+Board.prototype.reportDigitalPin = function (pin, value) {
     if(value === 0 || value === 1) {
         this.pins[pin].report = value;
         this.sp.write(new Buffer([REPORT_DIGITAL | pin, value]));
@@ -9463,7 +9789,8 @@ Board.prototype.reportDigitalPin = function(pin, value) {
  *
  *
  */
-Board.prototype.pulseIn = function(opts, callback){
+
+Board.prototype.pulseIn = function (opts, callback) {
     var pin = opts.pin;
     var value = opts.value;
     var pulseOut = opts.pulseOut || 0;
@@ -9504,14 +9831,13 @@ Board.prototype.pulseIn = function(opts, callback){
         END_SYSEX
     ];
     this.sp.write(new Buffer(data));
-    this.once('pulse-in-'+pin,callback);
+    this.once('pulse-in-' + pin,callback);
 };
 
 /**
  * Stepper functions to support AdvancedFirmata's asynchronous control of stepper motors
  * https://github.com/soundanalogous/AdvancedFirmata
  */
-
 
 /**
  * Asks the arduino to configure a stepper motor with the given config to allow asynchronous control of the stepper
@@ -9523,7 +9849,8 @@ Board.prototype.pulseIn = function(opts, callback){
  * @param {number} [motor3Pin] Only required if type == this.STEPPER.TYPE.FOUR_WIRE
  * @param {number} [motor4Pin] Only required if type == this.STEPPER.TYPE.FOUR_WIRE
  */
-Board.prototype.stepperConfig = function(deviceNum, type, stepsPerRev, dirOrMotor1Pin, stepOrMotor2Pin, motor3Pin, motor4Pin) {
+
+Board.prototype.stepperConfig = function (deviceNum, type, stepsPerRev, dirOrMotor1Pin, stepOrMotor2Pin, motor3Pin, motor4Pin) {
     var data = [
         START_SYSEX,
         STEPPER,
@@ -9542,7 +9869,6 @@ Board.prototype.stepperConfig = function(deviceNum, type, stepsPerRev, dirOrMoto
     this.sp.write(new Buffer(data));
 };
 
-
 /**
  * Asks the arduino to move a stepper a number of steps at a specific speed
  * (and optionally with and acceleration and deceleration)
@@ -9557,7 +9883,8 @@ Board.prototype.stepperConfig = function(deviceNum, type, stepsPerRev, dirOrMoto
  * @param {number} [decel]
  * @param {function} [callback]
  */
-Board.prototype.stepperStep = function(deviceNum, direction, steps, speed, accel, decel, callback) {
+
+Board.prototype.stepperStep = function (deviceNum, direction, steps, speed, accel, decel, callback) {
     if (typeof accel === 'function') {
         callback = accel;
         accel = 0;
@@ -9589,24 +9916,74 @@ Board.prototype.stepperStep = function(deviceNum, direction, steps, speed, accel
     this.once('stepper-done-'+deviceNum, callback);
 };
 
-
-
 /**
  * Send SYSTEM_RESET to arduino
  */
-Board.prototype.reset = function(){
+
+Board.prototype.reset = function () {
     this.sp.write(new Buffer([SYSTEM_RESET]));
 };
+
 module.exports = {
-    Board: Board
+    Board: Board,
+    SYSEX_RESPONSE: SYSEX_RESPONSE,
+    MIDI_RESPONSE: MIDI_RESPONSE
 };
 
-},{"__browserify_Buffer":62,"browser-serialport":36,"events":51,"serialport":41,"util":58}],36:[function(require,module,exports){
-module.exports=require(31)
-},{}],37:[function(require,module,exports){
+},{"./encoder7bit":35,"./onewireutils":37,"__browserify_Buffer":63,"browser-serialport":31,"events":52,"serialport":42,"util":59}],37:[function(require,module,exports){
+var Encoder7Bit = require('./encoder7bit');
+
+OneWireUtils = {
+    crc8: function(data) {
+        var crc = 0;
+
+        for(var i = 0; i < data.length; i++) {
+            var inbyte = data[i];
+
+            for (var n = 8; n; n--) {
+                var mix = (crc ^ inbyte) & 0x01;
+                crc >>= 1;
+
+                if (mix) {
+                    crc ^= 0x8C;
+                }
+
+                inbyte >>= 1;
+            }
+        }
+        return crc;
+    },
+
+    readDevices: function(data) {
+        var deviceBytes = Encoder7Bit.from7BitArray(data);
+        var devices = [];
+
+        for(var i = 0; i < deviceBytes.length; i += 8) {
+            var device = deviceBytes.slice(i, i + 8);
+
+			if(device.length != 8) {
+				continue;
+			}
+
+            var check = OneWireUtils.crc8(device.slice(0, 7));
+
+            if(check != device[7]) {
+                console.error("ROM invalid!");
+            }
+
+            devices.push(device);
+        }
+
+        return devices;
+    }
+};
+
+module.exports = OneWireUtils;
+
+},{"./encoder7bit":35}],38:[function(require,module,exports){
 var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};/**
  * @license
- * Lo-Dash 2.2.1 (Custom Build) <http://lodash.com/>
+ * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modern -o ./dist/lodash.js`
  * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
@@ -9653,7 +10030,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
 
   /**
    * Used to match ES6 template delimiters
-   * http://people.mozilla.org/~jorendorff/es6-draft.html#sec-7.8.6
+   * http://people.mozilla.org/~jorendorff/es6-draft.html#sec-literals-string-literals
    */
   var reEsTemplate = /\$\{([^\\}]*(?:\\.[^\\}]*)*)\}/g;
 
@@ -9661,7 +10038,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
   var reFlags = /\w*$/;
 
   /** Used to detected named functions */
-  var reFuncName = /^function[ \n\r\t]+\w/;
+  var reFuncName = /^\s*function[ \n\r\t]+\w/;
 
   /** Used to match "interpolate" template delimiters */
   var reInterpolate = /<%=([\s\S]+?)%>/g;
@@ -9682,7 +10059,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
   var contextProps = [
     'Array', 'Boolean', 'Date', 'Function', 'Math', 'Number', 'Object',
     'RegExp', 'String', '_', 'attachEvent', 'clearTimeout', 'isFinite', 'isNaN',
-    'parseInt', 'setImmediate', 'setTimeout'
+    'parseInt', 'setTimeout'
   ];
 
   /** Used to make template sourceURLs easier to identify */
@@ -9862,22 +10239,29 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
    */
   function compareAscending(a, b) {
     var ac = a.criteria,
-        bc = b.criteria;
+        bc = b.criteria,
+        index = -1,
+        length = ac.length;
 
-    // ensure a stable sort in V8 and other engines
-    // http://code.google.com/p/v8/issues/detail?id=90
-    if (ac !== bc) {
-      if (ac > bc || typeof ac == 'undefined') {
-        return 1;
-      }
-      if (ac < bc || typeof bc == 'undefined') {
-        return -1;
+    while (++index < length) {
+      var value = ac[index],
+          other = bc[index];
+
+      if (value !== other) {
+        if (value > other || typeof value == 'undefined') {
+          return 1;
+        }
+        if (value < other || typeof other == 'undefined') {
+          return -1;
+        }
       }
     }
-    // The JS engine embedded in Adobe applications like InDesign has a buggy
-    // `Array#sort` implementation that causes it, under certain circumstances,
-    // to return the same value for `a` and `b`.
-    // See https://github.com/jashkenas/underscore/pull/1247
+    // Fixes an `Array#sort` bug in the JS engine embedded in Adobe applications
+    // that causes it, under certain circumstances, to return the same value for
+    // `a` and `b`. See https://github.com/jashkenas/underscore/pull/1247
+    //
+    // This also ensures a stable sort in V8 and other engines.
+    // See http://code.google.com/p/v8/issues/detail?id=90
     return a.index - b.index;
   }
 
@@ -9957,15 +10341,6 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
       'undefined': false,
       'value': null
     };
-  }
-
-  /**
-   * A no-operation function.
-   *
-   * @private
-   */
-  function noop() {
-    // no operation performed
   }
 
   /**
@@ -10070,11 +10445,14 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     /** Used to restore the original `_` reference in `noConflict` */
     var oldDash = context._;
 
+    /** Used to resolve the internal [[Class]] of values */
+    var toString = objectProto.toString;
+
     /** Used to detect if a method is native */
     var reNative = RegExp('^' +
-      String(objectProto.valueOf)
+      String(toString)
         .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-        .replace(/valueOf|for [^\]]+/g, '.+?') + '$'
+        .replace(/toString| for [^\]]+/g, '.*?') + '$'
     );
 
     /** Native method shortcuts */
@@ -10082,41 +10460,34 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
         clearTimeout = context.clearTimeout,
         floor = Math.floor,
         fnToString = Function.prototype.toString,
-        getPrototypeOf = reNative.test(getPrototypeOf = Object.getPrototypeOf) && getPrototypeOf,
+        getPrototypeOf = isNative(getPrototypeOf = Object.getPrototypeOf) && getPrototypeOf,
         hasOwnProperty = objectProto.hasOwnProperty,
-        now = reNative.test(now = Date.now) && now || function() { return +new Date; },
         push = arrayRef.push,
-        setImmediate = context.setImmediate,
         setTimeout = context.setTimeout,
         splice = arrayRef.splice,
-        toString = objectProto.toString,
         unshift = arrayRef.unshift;
 
+    /** Used to set meta data on functions */
     var defineProperty = (function() {
+      // IE 8 only accepts DOM elements
       try {
         var o = {},
-            func = reNative.test(func = Object.defineProperty) && func,
+            func = isNative(func = Object.defineProperty) && func,
             result = func(o, o, o) && func;
       } catch(e) { }
       return result;
     }());
 
     /* Native method shortcuts for methods with the same name as other `lodash` methods */
-    var nativeBind = reNative.test(nativeBind = toString.bind) && nativeBind,
-        nativeCreate = reNative.test(nativeCreate = Object.create) && nativeCreate,
-        nativeIsArray = reNative.test(nativeIsArray = Array.isArray) && nativeIsArray,
+    var nativeCreate = isNative(nativeCreate = Object.create) && nativeCreate,
+        nativeIsArray = isNative(nativeIsArray = Array.isArray) && nativeIsArray,
         nativeIsFinite = context.isFinite,
         nativeIsNaN = context.isNaN,
-        nativeKeys = reNative.test(nativeKeys = Object.keys) && nativeKeys,
+        nativeKeys = isNative(nativeKeys = Object.keys) && nativeKeys,
         nativeMax = Math.max,
         nativeMin = Math.min,
         nativeParseInt = context.parseInt,
-        nativeRandom = Math.random,
-        nativeSlice = arrayRef.slice;
-
-    /** Detect various environments */
-    var isIeOpera = reNative.test(context.attachEvent),
-        isV8 = nativeBind && !/\n|true/.test(nativeBind + isIeOpera);
+        nativeRandom = Math.random;
 
     /** Used to lookup a built-in constructor by [[Class]] */
     var ctorByClass = {};
@@ -10144,15 +10515,16 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      *
      * The chainable wrapper functions are:
      * `after`, `assign`, `bind`, `bindAll`, `bindKey`, `chain`, `compact`,
-     * `compose`, `concat`, `countBy`, `createCallback`, `curry`, `debounce`,
-     * `defaults`, `defer`, `delay`, `difference`, `filter`, `flatten`, `forEach`,
-     * `forEachRight`, `forIn`, `forInRight`, `forOwn`, `forOwnRight`, `functions`,
-     * `groupBy`, `indexBy`, `initial`, `intersection`, `invert`, `invoke`, `keys`,
-     * `map`, `max`, `memoize`, `merge`, `min`, `object`, `omit`, `once`, `pairs`,
-     * `partial`, `partialRight`, `pick`, `pluck`, `pull`, `push`, `range`, `reject`,
-     * `remove`, `rest`, `reverse`, `shuffle`, `slice`, `sort`, `sortBy`, `splice`,
-     * `tap`, `throttle`, `times`, `toArray`, `transform`, `union`, `uniq`, `unshift`,
-     * `unzip`, `values`, `where`, `without`, `wrap`, and `zip`
+     * `compose`, `concat`, `countBy`, `create`, `createCallback`, `curry`,
+     * `debounce`, `defaults`, `defer`, `delay`, `difference`, `filter`, `flatten`,
+     * `forEach`, `forEachRight`, `forIn`, `forInRight`, `forOwn`, `forOwnRight`,
+     * `functions`, `groupBy`, `indexBy`, `initial`, `intersection`, `invert`,
+     * `invoke`, `keys`, `map`, `max`, `memoize`, `merge`, `min`, `object`, `omit`,
+     * `once`, `pairs`, `partial`, `partialRight`, `pick`, `pluck`, `pull`, `push`,
+     * `range`, `reject`, `remove`, `rest`, `reverse`, `shuffle`, `slice`, `sort`,
+     * `sortBy`, `splice`, `tap`, `throttle`, `times`, `toArray`, `transform`,
+     * `union`, `uniq`, `unshift`, `unzip`, `values`, `where`, `without`, `wrap`,
+     * and `zip`
      *
      * The non-chainable wrapper functions are:
      * `clone`, `cloneDeep`, `contains`, `escape`, `every`, `find`, `findIndex`,
@@ -10227,21 +10599,13 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     var support = lodash.support = {};
 
     /**
-     * Detect if `Function#bind` exists and is inferred to be fast (all but V8).
-     *
-     * @memberOf _.support
-     * @type boolean
-     */
-    support.fastBind = nativeBind && !isV8;
-
-    /**
      * Detect if functions can be decompiled by `Function#toString`
      * (all but PS3 and older Opera mobile browsers & avoided in Windows 8 apps).
      *
      * @memberOf _.support
      * @type boolean
      */
-    support.funcDecomp = !reNative.test(context.WinRTError) && reThis.test(runInContext);
+    support.funcDecomp = !isNative(context.WinRTError) && reThis.test(runInContext);
 
     /**
      * Detect if `Function#name` is supported (all but IE).
@@ -10315,18 +10679,55 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     /*--------------------------------------------------------------------------*/
 
     /**
+     * The base implementation of `_.bind` that creates the bound function and
+     * sets its meta data.
+     *
+     * @private
+     * @param {Array} bindData The bind data array.
+     * @returns {Function} Returns the new bound function.
+     */
+    function baseBind(bindData) {
+      var func = bindData[0],
+          partialArgs = bindData[2],
+          thisArg = bindData[4];
+
+      function bound() {
+        // `Function#bind` spec
+        // http://es5.github.io/#x15.3.4.5
+        if (partialArgs) {
+          // avoid `arguments` object deoptimizations by using `slice` instead
+          // of `Array.prototype.slice.call` and not assigning `arguments` to a
+          // variable as a ternary expression
+          var args = slice(partialArgs);
+          push.apply(args, arguments);
+        }
+        // mimic the constructor's `return` behavior
+        // http://es5.github.io/#x13.2.2
+        if (this instanceof bound) {
+          // ensure `new bound` is an instance of `func`
+          var thisBinding = baseCreate(func.prototype),
+              result = func.apply(thisBinding, args || arguments);
+          return isObject(result) ? result : thisBinding;
+        }
+        return func.apply(thisArg, args || arguments);
+      }
+      setBindData(bound, bindData);
+      return bound;
+    }
+
+    /**
      * The base implementation of `_.clone` without argument juggling or support
      * for `thisArg` binding.
      *
      * @private
      * @param {*} value The value to clone.
-     * @param {boolean} [deep=false] Specify a deep clone.
+     * @param {boolean} [isDeep=false] Specify a deep clone.
      * @param {Function} [callback] The function to customize cloning values.
      * @param {Array} [stackA=[]] Tracks traversed source objects.
      * @param {Array} [stackB=[]] Associates clones with source counterparts.
      * @returns {*} Returns the cloned value.
      */
-    function baseClone(value, deep, callback, stackA, stackB) {
+    function baseClone(value, isDeep, callback, stackA, stackB) {
       if (callback) {
         var result = callback(value);
         if (typeof result != 'undefined') {
@@ -10359,7 +10760,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
         return value;
       }
       var isArr = isArray(value);
-      if (deep) {
+      if (isDeep) {
         // check for circular references and return corresponding clone
         var initedStack = !stackA;
         stackA || (stackA = getArray());
@@ -10386,7 +10787,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
         }
       }
       // exit for shallow clone
-      if (!deep) {
+      if (!isDeep) {
         return result;
       }
       // add the source value to the stack of traversed objects
@@ -10396,7 +10797,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
 
       // recursively populate clone (susceptible to call stack limits)
       (isArr ? forEach : forOwn)(value, function(objValue, key) {
-        result[key] = baseClone(objValue, deep, callback, stackA, stackB);
+        result[key] = baseClone(objValue, isDeep, callback, stackA, stackB);
       });
 
       if (initedStack) {
@@ -10404,6 +10805,32 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
         releaseArray(stackB);
       }
       return result;
+    }
+
+    /**
+     * The base implementation of `_.create` without support for assigning
+     * properties to the created object.
+     *
+     * @private
+     * @param {Object} prototype The object to inherit from.
+     * @returns {Object} Returns the new object.
+     */
+    function baseCreate(prototype, properties) {
+      return isObject(prototype) ? nativeCreate(prototype) : {};
+    }
+    // fallback for browsers without `Object.create`
+    if (!nativeCreate) {
+      baseCreate = (function() {
+        function Object() {}
+        return function(prototype) {
+          if (isObject(prototype)) {
+            Object.prototype = prototype;
+            var result = new Object;
+            Object.prototype = null;
+          }
+          return result || context.Object();
+        };
+      }());
     }
 
     /**
@@ -10420,24 +10847,30 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
       if (typeof func != 'function') {
         return identity;
       }
-      // exit early if there is no `thisArg`
-      if (typeof thisArg == 'undefined') {
+      // exit early for no `thisArg` or already bound by `Function#bind`
+      if (typeof thisArg == 'undefined' || !('prototype' in func)) {
         return func;
       }
-      var bindData = func.__bindData__ || (support.funcNames && !func.name);
+      var bindData = func.__bindData__;
       if (typeof bindData == 'undefined') {
-        var source = reThis && fnToString.call(func);
-        if (!support.funcNames && source && !reFuncName.test(source)) {
-          bindData = true;
+        if (support.funcNames) {
+          bindData = !func.name;
         }
-        if (support.funcNames || !bindData) {
-          // checks if `func` references the `this` keyword and stores the result
-          bindData = !support.funcDecomp || reThis.test(source);
-          setBindData(func, bindData);
+        bindData = bindData || !support.funcDecomp;
+        if (!bindData) {
+          var source = fnToString.call(func);
+          if (!support.funcNames) {
+            bindData = !reFuncName.test(source);
+          }
+          if (!bindData) {
+            // checks if `func` references the `this` keyword and stores the result
+            bindData = reThis.test(source);
+            setBindData(func, bindData);
+          }
         }
       }
       // exit early if there are no `this` references or `func` is bound
-      if (bindData !== true && (bindData && bindData[1] & 1)) {
+      if (bindData === false || (bindData !== true && bindData[1] & 1)) {
         return func;
       }
       switch (argCount) {
@@ -10458,17 +10891,107 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     }
 
     /**
+     * The base implementation of `createWrapper` that creates the wrapper and
+     * sets its meta data.
+     *
+     * @private
+     * @param {Array} bindData The bind data array.
+     * @returns {Function} Returns the new function.
+     */
+    function baseCreateWrapper(bindData) {
+      var func = bindData[0],
+          bitmask = bindData[1],
+          partialArgs = bindData[2],
+          partialRightArgs = bindData[3],
+          thisArg = bindData[4],
+          arity = bindData[5];
+
+      var isBind = bitmask & 1,
+          isBindKey = bitmask & 2,
+          isCurry = bitmask & 4,
+          isCurryBound = bitmask & 8,
+          key = func;
+
+      function bound() {
+        var thisBinding = isBind ? thisArg : this;
+        if (partialArgs) {
+          var args = slice(partialArgs);
+          push.apply(args, arguments);
+        }
+        if (partialRightArgs || isCurry) {
+          args || (args = slice(arguments));
+          if (partialRightArgs) {
+            push.apply(args, partialRightArgs);
+          }
+          if (isCurry && args.length < arity) {
+            bitmask |= 16 & ~32;
+            return baseCreateWrapper([func, (isCurryBound ? bitmask : bitmask & ~3), args, null, thisArg, arity]);
+          }
+        }
+        args || (args = arguments);
+        if (isBindKey) {
+          func = thisBinding[key];
+        }
+        if (this instanceof bound) {
+          thisBinding = baseCreate(func.prototype);
+          var result = func.apply(thisBinding, args);
+          return isObject(result) ? result : thisBinding;
+        }
+        return func.apply(thisBinding, args);
+      }
+      setBindData(bound, bindData);
+      return bound;
+    }
+
+    /**
+     * The base implementation of `_.difference` that accepts a single array
+     * of values to exclude.
+     *
+     * @private
+     * @param {Array} array The array to process.
+     * @param {Array} [values] The array of values to exclude.
+     * @returns {Array} Returns a new array of filtered values.
+     */
+    function baseDifference(array, values) {
+      var index = -1,
+          indexOf = getIndexOf(),
+          length = array ? array.length : 0,
+          isLarge = length >= largeArraySize && indexOf === baseIndexOf,
+          result = [];
+
+      if (isLarge) {
+        var cache = createCache(values);
+        if (cache) {
+          indexOf = cacheIndexOf;
+          values = cache;
+        } else {
+          isLarge = false;
+        }
+      }
+      while (++index < length) {
+        var value = array[index];
+        if (indexOf(values, value) < 0) {
+          result.push(value);
+        }
+      }
+      if (isLarge) {
+        releaseObject(values);
+      }
+      return result;
+    }
+
+    /**
      * The base implementation of `_.flatten` without support for callback
      * shorthands or `thisArg` binding.
      *
      * @private
      * @param {Array} array The array to flatten.
      * @param {boolean} [isShallow=false] A flag to restrict flattening to a single level.
-     * @param {boolean} [isArgArrays=false] A flag to restrict flattening to arrays and `arguments` objects.
+     * @param {boolean} [isStrict=false] A flag to restrict flattening to arrays and `arguments` objects.
      * @param {number} [fromIndex=0] The index to start from.
      * @returns {Array} Returns a new flattened array.
      */
-    function baseFlatten(array, isShallow, isArgArrays, fromIndex) {
+    function baseFlatten(array, isShallow, isStrict, fromIndex) {
       var index = (fromIndex || 0) - 1,
           length = array ? array.length : 0,
           result = [];
@@ -10480,7 +11003,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             && (isArray(value) || isArguments(value))) {
           // recursively flatten arrays (susceptible to call stack limits)
           if (!isShallow) {
-            value = baseFlatten(value, isShallow, isArgArrays);
+            value = baseFlatten(value, isShallow, isStrict);
           }
           var valIndex = -1,
               valLength = value.length,
@@ -10490,7 +11013,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
           while (++valIndex < valLength) {
             result[resIndex++] = value[valIndex];
           }
-        } else if (!isArgArrays) {
+        } else if (!isStrict) {
           result.push(value);
         }
       }
@@ -10573,8 +11096,11 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
       var isArr = className == arrayClass;
       if (!isArr) {
         // unwrap any `lodash` wrapped values
-        if (hasOwnProperty.call(a, '__wrapped__ ') || hasOwnProperty.call(b, '__wrapped__')) {
-          return baseIsEqual(a.__wrapped__ || a, b.__wrapped__ || b, callback, isWhere, stackA, stackB);
+        var aWrapped = hasOwnProperty.call(a, '__wrapped__'),
+            bWrapped = hasOwnProperty.call(b, '__wrapped__');
+
+        if (aWrapped || bWrapped) {
+          return baseIsEqual(aWrapped ? a.__wrapped__ : a, bWrapped ? b.__wrapped__ : b, callback, isWhere, stackA, stackB);
         }
         // exit for functions and DOM nodes
         if (className != objectClass) {
@@ -10585,10 +11111,10 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             ctorB = b.constructor;
 
         // non `Object` object instances with different constructors are not equal
-        if (ctorA != ctorB && !(
-              isFunction(ctorA) && ctorA instanceof ctorA &&
-              isFunction(ctorB) && ctorB instanceof ctorB
-            )) {
+        if (ctorA != ctorB &&
+              !(isFunction(ctorA) && ctorA instanceof ctorA && isFunction(ctorB) && ctorB instanceof ctorB) &&
+              ('constructor' in a && 'constructor' in b)
+            ) {
           return false;
         }
       }
@@ -10614,51 +11140,54 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
 
       // recursively compare objects and arrays (susceptible to call stack limits)
       if (isArr) {
+        // compare lengths to determine if a deep comparison is necessary
         length = a.length;
         size = b.length;
+        result = size == length;
 
-        // compare lengths to determine if a deep comparison is necessary
-        result = size == a.length;
-        if (!result && !isWhere) {
-          return result;
-        }
-        // deep compare the contents, ignoring non-numeric properties
-        while (size--) {
-          var index = length,
-              value = b[size];
+        if (result || isWhere) {
+          // deep compare the contents, ignoring non-numeric properties
+          while (size--) {
+            var index = length,
+                value = b[size];
 
-          if (isWhere) {
-            while (index--) {
-              if ((result = baseIsEqual(a[index], value, callback, isWhere, stackA, stackB))) {
-                break;
+            if (isWhere) {
+              while (index--) {
+                if ((result = baseIsEqual(a[index], value, callback, isWhere, stackA, stackB))) {
+                  break;
+                }
               }
+            } else if (!(result = baseIsEqual(a[size], value, callback, isWhere, stackA, stackB))) {
+              break;
             }
-          } else if (!(result = baseIsEqual(a[size], value, callback, isWhere, stackA, stackB))) {
-            break;
           }
         }
-        return result;
       }
-      // deep compare objects using `forIn`, instead of `forOwn`, to avoid `Object.keys`
-      // which, in this case, is more costly
-      forIn(b, function(value, key, b) {
-        if (hasOwnProperty.call(b, key)) {
-          // count the number of properties.
-          size++;
-          // deep compare each property value.
-          return (result = hasOwnProperty.call(a, key) && baseIsEqual(a[key], value, callback, isWhere, stackA, stackB));
-        }
-      });
-
-      if (result && !isWhere) {
-        // ensure both objects have the same number of properties
-        forIn(a, function(value, key, a) {
-          if (hasOwnProperty.call(a, key)) {
-            // `size` will be `-1` if `a` has more properties than `b`
-            return (result = --size > -1);
+      else {
+        // deep compare objects using `forIn`, instead of `forOwn`, to avoid `Object.keys`
+        // which, in this case, is more costly
+        forIn(b, function(value, key, b) {
+          if (hasOwnProperty.call(b, key)) {
+            // count the number of properties.
+            size++;
+            // deep compare each property value.
+            return (result = hasOwnProperty.call(a, key) && baseIsEqual(a[key], value, callback, isWhere, stackA, stackB));
           }
         });
+
+        if (result && !isWhere) {
+          // ensure both objects have the same number of properties
+          forIn(a, function(value, key, a) {
+            if (hasOwnProperty.call(a, key)) {
+              // `size` will be `-1` if `a` has more properties than `b`
+              return (result = --size > -1);
+            }
+          });
+        }
       }
+      stackA.pop();
+      stackB.pop();
+
       if (initedStack) {
         releaseArray(stackA);
         releaseArray(stackB);
@@ -10732,6 +11261,19 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     }
 
     /**
+     * The base implementation of `_.random` without argument juggling or support
+     * for returning floating-point numbers.
+     *
+     * @private
+     * @param {number} min The minimum possible value.
+     * @param {number} max The maximum possible value.
+     * @returns {number} Returns a random number.
+     */
+    function baseRandom(min, max) {
+      return min + floor(nativeRandom() * (max - min + 1));
+    }
+
+    /**
      * The base implementation of `_.uniq` without support for callback shorthands
      * or `thisArg` binding.
      *
@@ -10752,13 +11294,8 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
 
       if (isLarge) {
         var cache = createCache(seen);
-        if (cache) {
-          indexOf = cacheIndexOf;
-          seen = cache;
-        } else {
-          isLarge = false;
-          seen = callback ? seen : (releaseArray(seen), result);
-        }
+        indexOf = cacheIndexOf;
+        seen = cache;
       }
       while (++index < length) {
         var value = array[index],
@@ -10835,16 +11372,15 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      *  provided to the new function.
      * @param {*} [thisArg] The `this` binding of `func`.
      * @param {number} [arity] The arity of `func`.
-     * @returns {Function} Returns the new bound function.
+     * @returns {Function} Returns the new function.
      */
-    function createBound(func, bitmask, partialArgs, partialRightArgs, thisArg, arity) {
+    function createWrapper(func, bitmask, partialArgs, partialRightArgs, thisArg, arity) {
       var isBind = bitmask & 1,
           isBindKey = bitmask & 2,
           isCurry = bitmask & 4,
           isCurryBound = bitmask & 8,
           isPartial = bitmask & 16,
-          isPartialRight = bitmask & 32,
-          key = func;
+          isPartialRight = bitmask & 32;
 
       if (!isBindKey && !isFunction(func)) {
         throw new TypeError;
@@ -10858,96 +11394,42 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
         isPartialRight = partialRightArgs = false;
       }
       var bindData = func && func.__bindData__;
-      if (bindData) {
+      if (bindData && bindData !== true) {
+        // clone `bindData`
+        bindData = slice(bindData);
+        if (bindData[2]) {
+          bindData[2] = slice(bindData[2]);
+        }
+        if (bindData[3]) {
+          bindData[3] = slice(bindData[3]);
+        }
+        // set `thisBinding` is not previously bound
         if (isBind && !(bindData[1] & 1)) {
           bindData[4] = thisArg;
         }
+        // set if previously bound but not currently (subsequent curried functions)
         if (!isBind && bindData[1] & 1) {
           bitmask |= 8;
         }
+        // set curried arity if not yet set
         if (isCurry && !(bindData[1] & 4)) {
           bindData[5] = arity;
         }
+        // append partial left arguments
         if (isPartial) {
           push.apply(bindData[2] || (bindData[2] = []), partialArgs);
         }
+        // append partial right arguments
         if (isPartialRight) {
-          push.apply(bindData[3] || (bindData[3] = []), partialRightArgs);
+          unshift.apply(bindData[3] || (bindData[3] = []), partialRightArgs);
         }
+        // merge flags
         bindData[1] |= bitmask;
-        return createBound.apply(null, bindData);
+        return createWrapper.apply(null, bindData);
       }
-      // use `Function#bind` if it exists and is fast
-      // (in V8 `Function#bind` is slower except when partially applied)
-      if (isBind && !(isBindKey || isCurry || isPartialRight) &&
-          (support.fastBind || (nativeBind && isPartial))) {
-        if (isPartial) {
-          var args = [thisArg];
-          push.apply(args, partialArgs);
-        }
-        var bound = isPartial
-          ? nativeBind.apply(func, args)
-          : nativeBind.call(func, thisArg);
-      }
-      else {
-        bound = function() {
-          // `Function#bind` spec
-          // http://es5.github.io/#x15.3.4.5
-          var args = arguments,
-              thisBinding = isBind ? thisArg : this;
-
-          if (isCurry || isPartial || isPartialRight) {
-            args = nativeSlice.call(args);
-            if (isPartial) {
-              unshift.apply(args, partialArgs);
-            }
-            if (isPartialRight) {
-              push.apply(args, partialRightArgs);
-            }
-            if (isCurry && args.length < arity) {
-              bitmask |= 16 & ~32;
-              return createBound(func, (isCurryBound ? bitmask : bitmask & ~3), args, null, thisArg, arity);
-            }
-          }
-          if (isBindKey) {
-            func = thisBinding[key];
-          }
-          if (this instanceof bound) {
-            // ensure `new bound` is an instance of `func`
-            thisBinding = createObject(func.prototype);
-
-            // mimic the constructor's `return` behavior
-            // http://es5.github.io/#x13.2.2
-            var result = func.apply(thisBinding, args);
-            return isObject(result) ? result : thisBinding;
-          }
-          return func.apply(thisBinding, args);
-        };
-      }
-      setBindData(bound, nativeSlice.call(arguments));
-      return bound;
-    }
-
-    /**
-     * Creates a new object with the specified `prototype`.
-     *
-     * @private
-     * @param {Object} prototype The prototype object.
-     * @returns {Object} Returns the new object.
-     */
-    function createObject(prototype) {
-      return isObject(prototype) ? nativeCreate(prototype) : {};
-    }
-    // fallback for browsers without `Object.create`
-    if (!nativeCreate) {
-      createObject = function(prototype) {
-        if (isObject(prototype)) {
-          noop.prototype = prototype;
-          var result = new noop;
-          noop.prototype = null;
-        }
-        return result || {};
-      };
+      // fast path for `_.bind`
+      var creater = (bitmask == 1 || bitmask === 17) ? baseBind : baseCreateWrapper;
+      return creater([func, bitmask, partialArgs, partialRightArgs, thisArg, arity]);
     }
 
     /**
@@ -10975,11 +11457,22 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     }
 
     /**
+     * Checks if `value` is a native function.
+     *
+     * @private
+     * @param {*} value The value to check.
+     * @returns {boolean} Returns `true` if the `value` is a native function, else `false`.
+     */
+    function isNative(value) {
+      return typeof value == 'function' && reNative.test(value);
+    }
+
+    /**
      * Sets `this` binding data on a given function.
      *
      * @private
      * @param {Function} func The function to set data on.
-     * @param {*} value The value to set.
+     * @param {Array} value The data array to set.
      */
     var setBindData = !defineProperty ? noop : function(func, value) {
       descriptor.value = value;
@@ -11155,16 +11648,16 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {Object} Returns the destination object.
      * @example
      *
-     * _.assign({ 'name': 'moe' }, { 'age': 40 });
-     * // => { 'name': 'moe', 'age': 40 }
+     * _.assign({ 'name': 'fred' }, { 'employer': 'slate' });
+     * // => { 'name': 'fred', 'employer': 'slate' }
      *
      * var defaults = _.partialRight(_.assign, function(a, b) {
      *   return typeof a == 'undefined' ? b : a;
      * });
      *
-     * var food = { 'name': 'apple' };
-     * defaults(food, { 'name': 'banana', 'type': 'fruit' });
-     * // => { 'name': 'apple', 'type': 'fruit' }
+     * var object = { 'name': 'barney' };
+     * defaults(object, { 'name': 'fred', 'employer': 'slate' });
+     * // => { 'name': 'barney', 'employer': 'slate' }
      */
     var assign = function(object, source, guard) {
       var index, iterable = object, result = iterable;
@@ -11194,7 +11687,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     };
 
     /**
-     * Creates a clone of `value`. If `deep` is `true` nested objects will also
+     * Creates a clone of `value`. If `isDeep` is `true` nested objects will also
      * be cloned, otherwise they will be assigned by reference. If a callback
      * is provided it will be executed to produce the cloned values. If the
      * callback returns `undefined` cloning will be handled by the method instead.
@@ -11204,23 +11697,23 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @memberOf _
      * @category Objects
      * @param {*} value The value to clone.
-     * @param {boolean} [deep=false] Specify a deep clone.
+     * @param {boolean} [isDeep=false] Specify a deep clone.
      * @param {Function} [callback] The function to customize cloning values.
      * @param {*} [thisArg] The `this` binding of `callback`.
      * @returns {*} Returns the cloned value.
      * @example
      *
-     * var stooges = [
-     *   { 'name': 'moe', 'age': 40 },
-     *   { 'name': 'larry', 'age': 50 }
+     * var characters = [
+     *   { 'name': 'barney', 'age': 36 },
+     *   { 'name': 'fred',   'age': 40 }
      * ];
      *
-     * var shallow = _.clone(stooges);
-     * shallow[0] === stooges[0];
+     * var shallow = _.clone(characters);
+     * shallow[0] === characters[0];
      * // => true
      *
-     * var deep = _.clone(stooges, true);
-     * deep[0] === stooges[0];
+     * var deep = _.clone(characters, true);
+     * deep[0] === characters[0];
      * // => false
      *
      * _.mixin({
@@ -11233,15 +11726,15 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * clone.childNodes.length;
      * // => 0
      */
-    function clone(value, deep, callback, thisArg) {
+    function clone(value, isDeep, callback, thisArg) {
       // allows working with "Collections" methods without using their `index`
-      // and `collection` arguments for `deep` and `callback`
-      if (typeof deep != 'boolean' && deep != null) {
+      // and `collection` arguments for `isDeep` and `callback`
+      if (typeof isDeep != 'boolean' && isDeep != null) {
         thisArg = callback;
-        callback = deep;
-        deep = false;
+        callback = isDeep;
+        isDeep = false;
       }
-      return baseClone(value, deep, typeof callback == 'function' && baseCreateCallback(callback, thisArg, 1));
+      return baseClone(value, isDeep, typeof callback == 'function' && baseCreateCallback(callback, thisArg, 1));
     }
 
     /**
@@ -11264,13 +11757,13 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {*} Returns the deep cloned value.
      * @example
      *
-     * var stooges = [
-     *   { 'name': 'moe', 'age': 40 },
-     *   { 'name': 'larry', 'age': 50 }
+     * var characters = [
+     *   { 'name': 'barney', 'age': 36 },
+     *   { 'name': 'fred',   'age': 40 }
      * ];
      *
-     * var deep = _.cloneDeep(stooges);
-     * deep[0] === stooges[0];
+     * var deep = _.cloneDeep(characters);
+     * deep[0] === characters[0];
      * // => false
      *
      * var view = {
@@ -11290,6 +11783,42 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     }
 
     /**
+     * Creates an object that inherits from the given `prototype` object. If a
+     * `properties` object is provided its own enumerable properties are assigned
+     * to the created object.
+     *
+     * @static
+     * @memberOf _
+     * @category Objects
+     * @param {Object} prototype The object to inherit from.
+     * @param {Object} [properties] The properties to assign to the object.
+     * @returns {Object} Returns the new object.
+     * @example
+     *
+     * function Shape() {
+     *   this.x = 0;
+     *   this.y = 0;
+     * }
+     *
+     * function Circle() {
+     *   Shape.call(this);
+     * }
+     *
+     * Circle.prototype = _.create(Shape.prototype, { 'constructor': Circle });
+     *
+     * var circle = new Circle;
+     * circle instanceof Circle;
+     * // => true
+     *
+     * circle instanceof Shape;
+     * // => true
+     */
+    function create(prototype, properties) {
+      var result = baseCreate(prototype);
+      return properties ? assign(result, properties) : result;
+    }
+
+    /**
      * Assigns own enumerable properties of source object(s) to the destination
      * object for all destination properties that resolve to `undefined`. Once a
      * property is set, additional defaults of the same property will be ignored.
@@ -11305,9 +11834,9 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {Object} Returns the destination object.
      * @example
      *
-     * var food = { 'name': 'apple' };
-     * _.defaults(food, { 'name': 'banana', 'type': 'fruit' });
-     * // => { 'name': 'apple', 'type': 'fruit' }
+     * var object = { 'name': 'barney' };
+     * _.defaults(object, { 'name': 'fred', 'employer': 'slate' });
+     * // => { 'name': 'barney', 'employer': 'slate' }
      */
     var defaults = function(object, source, guard) {
       var index, iterable = object, result = iterable;
@@ -11335,6 +11864,13 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * This method is like `_.findIndex` except that it returns the key of the
      * first element that passes the callback check, instead of the element itself.
      *
+     * If a property name is provided for `callback` the created "_.pluck" style
+     * callback will return the property value of the given element.
+     *
+     * If an object is provided for `callback` the created "_.where" style callback
+     * will return `true` for elements that have the properties of the given object,
+     * else `false`.
+     *
      * @static
      * @memberOf _
      * @category Objects
@@ -11346,10 +11882,24 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {string|undefined} Returns the key of the found element, else `undefined`.
      * @example
      *
-     * _.findKey({ 'a': 1, 'b': 2, 'c': 3, 'd': 4 }, function(num) {
-     *   return num % 2 == 0;
+     * var characters = {
+     *   'barney': {  'age': 36, 'blocked': false },
+     *   'fred': {    'age': 40, 'blocked': true },
+     *   'pebbles': { 'age': 1,  'blocked': false }
+     * };
+     *
+     * _.findKey(characters, function(chr) {
+     *   return chr.age < 40;
      * });
-     * // => 'b' (property order is not guaranteed across environments)
+     * // => 'barney' (property order is not guaranteed across environments)
+     *
+     * // using "_.where" callback shorthand
+     * _.findKey(characters, { 'age': 1 });
+     * // => 'pebbles'
+     *
+     * // using "_.pluck" callback shorthand
+     * _.findKey(characters, 'blocked');
+     * // => 'fred'
      */
     function findKey(object, callback, thisArg) {
       var result;
@@ -11367,6 +11917,13 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * This method is like `_.findKey` except that it iterates over elements
      * of a `collection` in the opposite order.
      *
+     * If a property name is provided for `callback` the created "_.pluck" style
+     * callback will return the property value of the given element.
+     *
+     * If an object is provided for `callback` the created "_.where" style callback
+     * will return `true` for elements that have the properties of the given object,
+     * else `false`.
+     *
      * @static
      * @memberOf _
      * @category Objects
@@ -11378,10 +11935,24 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {string|undefined} Returns the key of the found element, else `undefined`.
      * @example
      *
-     * _.findLastKey({ 'a': 1, 'b': 2, 'c': 3, 'd': 4 }, function(num) {
-     *   return num % 2 == 1;
+     * var characters = {
+     *   'barney': {  'age': 36, 'blocked': true },
+     *   'fred': {    'age': 40, 'blocked': false },
+     *   'pebbles': { 'age': 1,  'blocked': true }
+     * };
+     *
+     * _.findLastKey(characters, function(chr) {
+     *   return chr.age < 40;
      * });
-     * // => returns `c`, assuming `_.findKey` returns `a`
+     * // => returns `pebbles`, assuming `_.findKey` returns `barney`
+     *
+     * // using "_.where" callback shorthand
+     * _.findLastKey(characters, { 'age': 40 });
+     * // => 'fred'
+     *
+     * // using "_.pluck" callback shorthand
+     * _.findLastKey(characters, 'blocked');
+     * // => 'pebbles'
      */
     function findLastKey(object, callback, thisArg) {
       var result;
@@ -11411,18 +11982,20 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {Object} Returns `object`.
      * @example
      *
-     * function Dog(name) {
-     *   this.name = name;
+     * function Shape() {
+     *   this.x = 0;
+     *   this.y = 0;
      * }
      *
-     * Dog.prototype.bark = function() {
-     *   console.log('Woof, woof!');
+     * Shape.prototype.move = function(x, y) {
+     *   this.x += x;
+     *   this.y += y;
      * };
      *
-     * _.forIn(new Dog('Dagny'), function(value, key) {
+     * _.forIn(new Shape, function(value, key) {
      *   console.log(key);
      * });
-     * // => logs 'bark' and 'name' (property order is not guaranteed across environments)
+     * // => logs 'x', 'y', and 'move' (property order is not guaranteed across environments)
      */
     var forIn = function(collection, callback, thisArg) {
       var index, iterable = collection, result = iterable;
@@ -11448,18 +12021,20 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {Object} Returns `object`.
      * @example
      *
-     * function Dog(name) {
-     *   this.name = name;
+     * function Shape() {
+     *   this.x = 0;
+     *   this.y = 0;
      * }
      *
-     * Dog.prototype.bark = function() {
-     *   console.log('Woof, woof!');
+     * Shape.prototype.move = function(x, y) {
+     *   this.x += x;
+     *   this.y += y;
      * };
      *
-     * _.forInRight(new Dog('Dagny'), function(value, key) {
+     * _.forInRight(new Shape, function(value, key) {
      *   console.log(key);
      * });
-     * // => logs 'name' and 'bark' assuming `_.forIn ` logs 'bark' and 'name'
+     * // => logs 'move', 'y', and 'x' assuming `_.forIn ` logs 'x', 'y', and 'move'
      */
     function forInRight(object, callback, thisArg) {
       var pairs = [];
@@ -11573,22 +12148,22 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     }
 
     /**
-     * Checks if the specified object `property` exists and is a direct property,
+     * Checks if the specified property name exists as a direct property of `object`,
      * instead of an inherited property.
      *
      * @static
      * @memberOf _
      * @category Objects
-     * @param {Object} object The object to check.
-     * @param {string} property The property to check for.
+     * @param {Object} object The object to inspect.
+     * @param {string} key The name of the property to check.
      * @returns {boolean} Returns `true` if key is a direct property, else `false`.
      * @example
      *
      * _.has({ 'a': 1, 'b': 2, 'c': 3 }, 'b');
      * // => true
      */
-    function has(object, property) {
-      return object ? hasOwnProperty.call(object, property) : false;
+    function has(object, key) {
+      return object ? hasOwnProperty.call(object, key) : false;
     }
 
     /**
@@ -11601,8 +12176,8 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {Object} Returns the created inverted object.
      * @example
      *
-     *  _.invert({ 'first': 'moe', 'second': 'larry' });
-     * // => { 'moe': 'first', 'larry': 'second' }
+     * _.invert({ 'first': 'fred', 'second': 'barney' });
+     * // => { 'fred': 'first', 'barney': 'second' }
      */
     function invert(object) {
       var index = -1,
@@ -11631,7 +12206,8 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * // => false
      */
     function isBoolean(value) {
-      return value === true || value === false || toString.call(value) == boolClass;
+      return value === true || value === false ||
+        value && typeof value == 'object' && toString.call(value) == boolClass || false;
     }
 
     /**
@@ -11648,7 +12224,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * // => true
      */
     function isDate(value) {
-      return value ? (typeof value == 'object' && toString.call(value) == dateClass) : false;
+      return value && typeof value == 'object' && toString.call(value) == dateClass || false;
     }
 
     /**
@@ -11665,7 +12241,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * // => true
      */
     function isElement(value) {
-      return value ? value.nodeType === 1 : false;
+      return value && value.nodeType === 1 || false;
     }
 
     /**
@@ -11724,13 +12300,13 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {boolean} Returns `true` if the values are equivalent, else `false`.
      * @example
      *
-     * var moe = { 'name': 'moe', 'age': 40 };
-     * var copy = { 'name': 'moe', 'age': 40 };
+     * var object = { 'name': 'fred' };
+     * var copy = { 'name': 'fred' };
      *
-     * moe == copy;
+     * object == copy;
      * // => false
      *
-     * _.isEqual(moe, copy);
+     * _.isEqual(object, copy);
      * // => true
      *
      * var words = ['hello', 'goodbye'];
@@ -11893,7 +12469,8 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * // => true
      */
     function isNumber(value) {
-      return typeof value == 'number' || toString.call(value) == numberClass;
+      return typeof value == 'number' ||
+        value && typeof value == 'object' && toString.call(value) == numberClass || false;
     }
 
     /**
@@ -11906,26 +12483,26 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {boolean} Returns `true` if `value` is a plain object, else `false`.
      * @example
      *
-     * function Stooge(name, age) {
-     *   this.name = name;
-     *   this.age = age;
+     * function Shape() {
+     *   this.x = 0;
+     *   this.y = 0;
      * }
      *
-     * _.isPlainObject(new Stooge('moe', 40));
+     * _.isPlainObject(new Shape);
      * // => false
      *
      * _.isPlainObject([1, 2, 3]);
      * // => false
      *
-     * _.isPlainObject({ 'name': 'moe', 'age': 40 });
+     * _.isPlainObject({ 'x': 0, 'y': 0 });
      * // => true
      */
-    var isPlainObject = function(value) {
+    var isPlainObject = !getPrototypeOf ? shimIsPlainObject : function(value) {
       if (!(value && toString.call(value) == objectClass)) {
         return false;
       }
       var valueOf = value.valueOf,
-          objProto = typeof valueOf == 'function' && (objProto = getPrototypeOf(valueOf)) && getPrototypeOf(objProto);
+          objProto = isNative(valueOf) && (objProto = getPrototypeOf(valueOf)) && getPrototypeOf(objProto);
 
       return objProto
         ? (value == objProto || getPrototypeOf(value) == objProto)
@@ -11942,11 +12519,11 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {boolean} Returns `true` if the `value` is a regular expression, else `false`.
      * @example
      *
-     * _.isRegExp(/moe/);
+     * _.isRegExp(/fred/);
      * // => true
      */
     function isRegExp(value) {
-      return value ? (typeof value == 'object' && toString.call(value) == regexpClass) : false;
+      return value && typeof value == 'object' && toString.call(value) == regexpClass || false;
     }
 
     /**
@@ -11959,11 +12536,12 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {boolean} Returns `true` if the `value` is a string, else `false`.
      * @example
      *
-     * _.isString('moe');
+     * _.isString('fred');
      * // => true
      */
     function isString(value) {
-      return typeof value == 'string' || toString.call(value) == stringClass;
+      return typeof value == 'string' ||
+        value && typeof value == 'object' && toString.call(value) == stringClass || false;
     }
 
     /**
@@ -11981,6 +12559,52 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      */
     function isUndefined(value) {
       return typeof value == 'undefined';
+    }
+
+    /**
+     * Creates an object with the same keys as `object` and values generated by
+     * running each own enumerable property of `object` through the callback.
+     * The callback is bound to `thisArg` and invoked with three arguments;
+     * (value, key, object).
+     *
+     * If a property name is provided for `callback` the created "_.pluck" style
+     * callback will return the property value of the given element.
+     *
+     * If an object is provided for `callback` the created "_.where" style callback
+     * will return `true` for elements that have the properties of the given object,
+     * else `false`.
+     *
+     * @static
+     * @memberOf _
+     * @category Objects
+     * @param {Object} object The object to iterate over.
+     * @param {Function|Object|string} [callback=identity] The function called
+     *  per iteration. If a property name or object is provided it will be used
+     *  to create a "_.pluck" or "_.where" style callback, respectively.
+     * @param {*} [thisArg] The `this` binding of `callback`.
+     * @returns {Array} Returns a new object with values of the results of each `callback` execution.
+     * @example
+     *
+     * _.mapValues({ 'a': 1, 'b': 2, 'c': 3} , function(num) { return num * 3; });
+     * // => { 'a': 3, 'b': 6, 'c': 9 }
+     *
+     * var characters = {
+     *   'fred': { 'name': 'fred', 'age': 40 },
+     *   'pebbles': { 'name': 'pebbles', 'age': 1 }
+     * };
+     *
+     * // using "_.pluck" callback shorthand
+     * _.mapValues(characters, 'age');
+     * // => { 'fred': 40, 'pebbles': 1 }
+     */
+    function mapValues(object, callback, thisArg) {
+      var result = {};
+      callback = lodash.createCallback(callback, thisArg, 3);
+
+      forOwn(object, function(value, key, object) {
+        result[key] = callback(value, key, object);
+      });
+      return result;
     }
 
     /**
@@ -12003,21 +12627,21 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @example
      *
      * var names = {
-     *   'stooges': [
-     *     { 'name': 'moe' },
-     *     { 'name': 'larry' }
+     *   'characters': [
+     *     { 'name': 'barney' },
+     *     { 'name': 'fred' }
      *   ]
      * };
      *
      * var ages = {
-     *   'stooges': [
-     *     { 'age': 40 },
-     *     { 'age': 50 }
+     *   'characters': [
+     *     { 'age': 36 },
+     *     { 'age': 40 }
      *   ]
      * };
      *
      * _.merge(names, ages);
-     * // => { 'stooges': [{ 'name': 'moe', 'age': 40 }, { 'name': 'larry', 'age': 50 }] }
+     * // => { 'characters': [{ 'name': 'barney', 'age': 36 }, { 'name': 'fred', 'age': 40 }] }
      *
      * var food = {
      *   'fruits': ['apple'],
@@ -12051,7 +12675,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
       } else if (length > 2 && typeof args[length - 1] == 'function') {
         callback = args[--length];
       }
-      var sources = nativeSlice.call(arguments, 1, length),
+      var sources = slice(arguments, 1, length),
           index = -1,
           stackA = getArray(),
           stackB = getArray();
@@ -12082,32 +12706,38 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {Object} Returns an object without the omitted properties.
      * @example
      *
-     * _.omit({ 'name': 'moe', 'age': 40 }, 'age');
-     * // => { 'name': 'moe' }
+     * _.omit({ 'name': 'fred', 'age': 40 }, 'age');
+     * // => { 'name': 'fred' }
      *
-     * _.omit({ 'name': 'moe', 'age': 40 }, function(value) {
+     * _.omit({ 'name': 'fred', 'age': 40 }, function(value) {
      *   return typeof value == 'number';
      * });
-     * // => { 'name': 'moe' }
+     * // => { 'name': 'fred' }
      */
     function omit(object, callback, thisArg) {
-      var indexOf = getIndexOf(),
-          isFunc = typeof callback == 'function',
-          result = {};
+      var result = {};
+      if (typeof callback != 'function') {
+        var props = [];
+        forIn(object, function(value, key) {
+          props.push(key);
+        });
+        props = baseDifference(props, baseFlatten(arguments, true, false, 1));
 
-      if (isFunc) {
-        callback = lodash.createCallback(callback, thisArg, 3);
-      } else {
-        var props = baseFlatten(arguments, true, false, 1);
-      }
-      forIn(object, function(value, key, object) {
-        if (isFunc
-              ? !callback(value, key, object)
-              : indexOf(props, key) < 0
-            ) {
-          result[key] = value;
+        var index = -1,
+            length = props.length;
+
+        while (++index < length) {
+          var key = props[index];
+          result[key] = object[key];
         }
-      });
+      } else {
+        callback = lodash.createCallback(callback, thisArg, 3);
+        forIn(object, function(value, key, object) {
+          if (!callback(value, key, object)) {
+            result[key] = value;
+          }
+        });
+      }
       return result;
     }
 
@@ -12122,8 +12752,8 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {Array} Returns new array of key-value pairs.
      * @example
      *
-     * _.pairs({ 'moe': 30, 'larry': 40 });
-     * // => [['moe', 30], ['larry', 40]] (property order is not guaranteed across environments)
+     * _.pairs({ 'barney': 36, 'fred': 40 });
+     * // => [['barney', 36], ['fred', 40]] (property order is not guaranteed across environments)
      */
     function pairs(object) {
       var index = -1,
@@ -12157,13 +12787,13 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {Object} Returns an object composed of the picked properties.
      * @example
      *
-     * _.pick({ 'name': 'moe', '_userid': 'moe1' }, 'name');
-     * // => { 'name': 'moe' }
+     * _.pick({ 'name': 'fred', '_userid': 'fred1' }, 'name');
+     * // => { 'name': 'fred' }
      *
-     * _.pick({ 'name': 'moe', '_userid': 'moe1' }, function(value, key) {
+     * _.pick({ 'name': 'fred', '_userid': 'fred1' }, function(value, key) {
      *   return key.charAt(0) != '_';
      * });
-     * // => { 'name': 'moe' }
+     * // => { 'name': 'fred' }
      */
     function pick(object, callback, thisArg) {
       var result = {};
@@ -12191,16 +12821,16 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
 
     /**
      * An alternative to `_.reduce` this method transforms `object` to a new
-     * `accumulator` object which is the result of running each of its elements
-     * through a callback, with each callback execution potentially mutating
-     * the `accumulator` object. The callback is bound to `thisArg` and invoked
-     * with four arguments; (accumulator, value, key, object). Callbacks may exit
-     * iteration early by explicitly returning `false`.
+     * `accumulator` object which is the result of running each of its own
+     * enumerable properties through a callback, with each callback execution
+     * potentially mutating the `accumulator` object. The callback is bound to
+     * `thisArg` and invoked with four arguments; (accumulator, value, key, object).
+     * Callbacks may exit iteration early by explicitly returning `false`.
      *
      * @static
      * @memberOf _
      * @category Objects
-     * @param {Array|Object} collection The collection to iterate over.
+     * @param {Array|Object} object The object to iterate over.
      * @param {Function} [callback=identity] The function called per iteration.
      * @param {*} [accumulator] The custom accumulator value.
      * @param {*} [thisArg] The `this` binding of `callback`.
@@ -12222,8 +12852,6 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      */
     function transform(object, callback, accumulator, thisArg) {
       var isArr = isArray(object);
-      callback = baseCreateCallback(callback, thisArg, 4);
-
       if (accumulator == null) {
         if (isArr) {
           accumulator = [];
@@ -12231,12 +12859,15 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
           var ctor = object && object.constructor,
               proto = ctor && ctor.prototype;
 
-          accumulator = createObject(proto);
+          accumulator = baseCreate(proto);
         }
       }
-      (isArr ? forEach : forOwn)(object, function(value, index, object) {
-        return callback(accumulator, value, index, object);
-      });
+      if (callback) {
+        callback = lodash.createCallback(callback, thisArg, 4);
+        (isArr ? forEach : forOwn)(object, function(value, index, object) {
+          return callback(accumulator, value, index, object);
+        });
+      }
       return accumulator;
     }
 
@@ -12285,8 +12916,8 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * _.at(['a', 'b', 'c', 'd', 'e'], [0, 2, 4]);
      * // => ['a', 'c', 'e']
      *
-     * _.at(['moe', 'larry', 'curly'], 0, 2);
-     * // => ['moe', 'curly']
+     * _.at(['fred', 'barney', 'pebbles'], 0, 2);
+     * // => ['fred', 'pebbles']
      */
     function at(collection) {
       var args = arguments,
@@ -12322,10 +12953,10 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * _.contains([1, 2, 3], 1, 2);
      * // => false
      *
-     * _.contains({ 'name': 'moe', 'age': 40 }, 'moe');
+     * _.contains({ 'name': 'fred', 'age': 40 }, 'fred');
      * // => true
      *
-     * _.contains('curly', 'ur');
+     * _.contains('pebbles', 'eb');
      * // => true
      */
     function contains(collection, target, fromIndex) {
@@ -12412,20 +13043,20 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      *  else `false`.
      * @example
      *
-     * _.every([true, 1, null, 'yes'], Boolean);
+     * _.every([true, 1, null, 'yes']);
      * // => false
      *
-     * var stooges = [
-     *   { 'name': 'moe', 'age': 40 },
-     *   { 'name': 'larry', 'age': 50 }
+     * var characters = [
+     *   { 'name': 'barney', 'age': 36 },
+     *   { 'name': 'fred',   'age': 40 }
      * ];
      *
      * // using "_.pluck" callback shorthand
-     * _.every(stooges, 'age');
+     * _.every(characters, 'age');
      * // => true
      *
      * // using "_.where" callback shorthand
-     * _.every(stooges, { 'age': 50 });
+     * _.every(characters, { 'age': 36 });
      * // => false
      */
     function every(collection, callback, thisArg) {
@@ -12476,18 +13107,18 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * var evens = _.filter([1, 2, 3, 4, 5, 6], function(num) { return num % 2 == 0; });
      * // => [2, 4, 6]
      *
-     * var food = [
-     *   { 'name': 'apple',  'organic': false, 'type': 'fruit' },
-     *   { 'name': 'carrot', 'organic': true,  'type': 'vegetable' }
+     * var characters = [
+     *   { 'name': 'barney', 'age': 36, 'blocked': false },
+     *   { 'name': 'fred',   'age': 40, 'blocked': true }
      * ];
      *
      * // using "_.pluck" callback shorthand
-     * _.filter(food, 'organic');
-     * // => [{ 'name': 'carrot', 'organic': true, 'type': 'vegetable' }]
+     * _.filter(characters, 'blocked');
+     * // => [{ 'name': 'fred', 'age': 40, 'blocked': true }]
      *
      * // using "_.where" callback shorthand
-     * _.filter(food, { 'type': 'fruit' });
-     * // => [{ 'name': 'apple', 'organic': false, 'type': 'fruit' }]
+     * _.filter(characters, { 'age': 36 });
+     * // => [{ 'name': 'barney', 'age': 36, 'blocked': false }]
      */
     function filter(collection, callback, thisArg) {
       var result = [];
@@ -12537,24 +13168,24 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {*} Returns the found element, else `undefined`.
      * @example
      *
-     * _.find([1, 2, 3, 4], function(num) {
-     *   return num % 2 == 0;
-     * });
-     * // => 2
-     *
-     * var food = [
-     *   { 'name': 'apple',  'organic': false, 'type': 'fruit' },
-     *   { 'name': 'banana', 'organic': true,  'type': 'fruit' },
-     *   { 'name': 'beet',   'organic': false, 'type': 'vegetable' }
+     * var characters = [
+     *   { 'name': 'barney',  'age': 36, 'blocked': false },
+     *   { 'name': 'fred',    'age': 40, 'blocked': true },
+     *   { 'name': 'pebbles', 'age': 1,  'blocked': false }
      * ];
      *
+     * _.find(characters, function(chr) {
+     *   return chr.age < 40;
+     * });
+     * // => { 'name': 'barney', 'age': 36, 'blocked': false }
+     *
      * // using "_.where" callback shorthand
-     * _.find(food, { 'type': 'vegetable' });
-     * // => { 'name': 'beet', 'organic': false, 'type': 'vegetable' }
+     * _.find(characters, { 'age': 1 });
+     * // =>  { 'name': 'pebbles', 'age': 1, 'blocked': false }
      *
      * // using "_.pluck" callback shorthand
-     * _.find(food, 'organic');
-     * // => { 'name': 'banana', 'organic': true, 'type': 'fruit' }
+     * _.find(characters, 'blocked');
+     * // => { 'name': 'fred', 'age': 40, 'blocked': true }
      */
     function find(collection, callback, thisArg) {
       callback = lodash.createCallback(callback, thisArg, 3);
@@ -12618,6 +13249,10 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * element. The callback is bound to `thisArg` and invoked with three arguments;
      * (value, index|key, collection). Callbacks may exit iteration early by
      * explicitly returning `false`.
+     *
+     * Note: As with other "Collections" methods, objects with a `length` property
+     * are iterated like arrays. To avoid this behavior `_.forIn` or `_.forOwn`
+     * may be used for object iteration.
      *
      * @static
      * @memberOf _
@@ -12764,7 +13399,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * _.indexBy(keys, function(key) { return String.fromCharCode(key.code); });
      * // => { 'a': { 'dir': 'left', 'code': 97 }, 'd': { 'dir': 'right', 'code': 100 } }
      *
-     * _.indexBy(stooges, function(key) { this.fromCharCode(key.code); }, String);
+     * _.indexBy(characters, function(key) { this.fromCharCode(key.code); }, String);
      * // => { 'a': { 'dir': 'left', 'code': 97 }, 'd': { 'dir': 'right', 'code': 100 } }
      */
     var indexBy = createAggregator(function(result, value, key) {
@@ -12794,7 +13429,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * // => [['1', '2', '3'], ['4', '5', '6']]
      */
     function invoke(collection, methodName) {
-      var args = nativeSlice.call(arguments, 2),
+      var args = slice(arguments, 2),
           index = -1,
           isFunc = typeof methodName == 'function',
           length = collection ? collection.length : 0,
@@ -12836,14 +13471,14 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * _.map({ 'one': 1, 'two': 2, 'three': 3 }, function(num) { return num * 3; });
      * // => [3, 6, 9] (property order is not guaranteed across environments)
      *
-     * var stooges = [
-     *   { 'name': 'moe', 'age': 40 },
-     *   { 'name': 'larry', 'age': 50 }
+     * var characters = [
+     *   { 'name': 'barney', 'age': 36 },
+     *   { 'name': 'fred',   'age': 40 }
      * ];
      *
      * // using "_.pluck" callback shorthand
-     * _.map(stooges, 'name');
-     * // => ['moe', 'larry']
+     * _.map(characters, 'name');
+     * // => ['barney', 'fred']
      */
     function map(collection, callback, thisArg) {
       var index = -1,
@@ -12892,23 +13527,28 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * _.max([4, 2, 8, 6]);
      * // => 8
      *
-     * var stooges = [
-     *   { 'name': 'moe', 'age': 40 },
-     *   { 'name': 'larry', 'age': 50 }
+     * var characters = [
+     *   { 'name': 'barney', 'age': 36 },
+     *   { 'name': 'fred',   'age': 40 }
      * ];
      *
-     * _.max(stooges, function(stooge) { return stooge.age; });
-     * // => { 'name': 'larry', 'age': 50 };
+     * _.max(characters, function(chr) { return chr.age; });
+     * // => { 'name': 'fred', 'age': 40 };
      *
      * // using "_.pluck" callback shorthand
-     * _.max(stooges, 'age');
-     * // => { 'name': 'larry', 'age': 50 };
+     * _.max(characters, 'age');
+     * // => { 'name': 'fred', 'age': 40 };
      */
     function max(collection, callback, thisArg) {
       var computed = -Infinity,
           result = computed;
 
-      if (!callback && isArray(collection)) {
+      // allows working with functions like `_.map` without using
+      // their `index` argument as a callback
+      if (typeof callback != 'function' && thisArg && thisArg[callback] === collection) {
+        callback = null;
+      }
+      if (callback == null && isArray(collection)) {
         var index = -1,
             length = collection.length;
 
@@ -12919,7 +13559,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
           }
         }
       } else {
-        callback = (!callback && isString(collection))
+        callback = (callback == null && isString(collection))
           ? charAtCallback
           : lodash.createCallback(callback, thisArg, 3);
 
@@ -12962,23 +13602,28 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * _.min([4, 2, 8, 6]);
      * // => 2
      *
-     * var stooges = [
-     *   { 'name': 'moe', 'age': 40 },
-     *   { 'name': 'larry', 'age': 50 }
+     * var characters = [
+     *   { 'name': 'barney', 'age': 36 },
+     *   { 'name': 'fred',   'age': 40 }
      * ];
      *
-     * _.min(stooges, function(stooge) { return stooge.age; });
-     * // => { 'name': 'moe', 'age': 40 };
+     * _.min(characters, function(chr) { return chr.age; });
+     * // => { 'name': 'barney', 'age': 36 };
      *
      * // using "_.pluck" callback shorthand
-     * _.min(stooges, 'age');
-     * // => { 'name': 'moe', 'age': 40 };
+     * _.min(characters, 'age');
+     * // => { 'name': 'barney', 'age': 36 };
      */
     function min(collection, callback, thisArg) {
       var computed = Infinity,
           result = computed;
 
-      if (!callback && isArray(collection)) {
+      // allows working with functions like `_.map` without using
+      // their `index` argument as a callback
+      if (typeof callback != 'function' && thisArg && thisArg[callback] === collection) {
+        callback = null;
+      }
+      if (callback == null && isArray(collection)) {
         var index = -1,
             length = collection.length;
 
@@ -12989,7 +13634,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
           }
         }
       } else {
-        callback = (!callback && isString(collection))
+        callback = (callback == null && isString(collection))
           ? charAtCallback
           : lodash.createCallback(callback, thisArg, 3);
 
@@ -13005,37 +13650,26 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     }
 
     /**
-     * Retrieves the value of a specified property from all elements in the `collection`.
+     * Retrieves the value of a specified property from all elements in the collection.
      *
      * @static
      * @memberOf _
      * @type Function
      * @category Collections
      * @param {Array|Object|string} collection The collection to iterate over.
-     * @param {string} property The property to pluck.
+     * @param {string} property The name of the property to pluck.
      * @returns {Array} Returns a new array of property values.
      * @example
      *
-     * var stooges = [
-     *   { 'name': 'moe', 'age': 40 },
-     *   { 'name': 'larry', 'age': 50 }
+     * var characters = [
+     *   { 'name': 'barney', 'age': 36 },
+     *   { 'name': 'fred',   'age': 40 }
      * ];
      *
-     * _.pluck(stooges, 'name');
-     * // => ['moe', 'larry']
+     * _.pluck(characters, 'name');
+     * // => ['barney', 'fred']
      */
-    function pluck(collection, property) {
-      var index = -1,
-          length = collection ? collection.length : 0;
-
-      if (typeof length == 'number') {
-        var result = Array(length);
-        while (++index < length) {
-          result[index] = collection[index][property];
-        }
-      }
-      return result || map(collection, property);
-    }
+    var pluck = map;
 
     /**
      * Reduces a collection to a value which is the accumulated result of running
@@ -13070,7 +13704,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     function reduce(collection, callback, accumulator, thisArg) {
       if (!collection) return accumulator;
       var noaccum = arguments.length < 3;
-      callback = baseCreateCallback(callback, thisArg, 4);
+      callback = lodash.createCallback(callback, thisArg, 4);
 
       var index = -1,
           length = collection.length;
@@ -13113,7 +13747,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      */
     function reduceRight(collection, callback, accumulator, thisArg) {
       var noaccum = arguments.length < 3;
-      callback = baseCreateCallback(callback, thisArg, 4);
+      callback = lodash.createCallback(callback, thisArg, 4);
       forEachRight(collection, function(value, index, collection) {
         accumulator = noaccum
           ? (noaccum = false, value)
@@ -13147,18 +13781,18 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * var odds = _.reject([1, 2, 3, 4, 5, 6], function(num) { return num % 2 == 0; });
      * // => [1, 3, 5]
      *
-     * var food = [
-     *   { 'name': 'apple',  'organic': false, 'type': 'fruit' },
-     *   { 'name': 'carrot', 'organic': true,  'type': 'vegetable' }
+     * var characters = [
+     *   { 'name': 'barney', 'age': 36, 'blocked': false },
+     *   { 'name': 'fred',   'age': 40, 'blocked': true }
      * ];
      *
      * // using "_.pluck" callback shorthand
-     * _.reject(food, 'organic');
-     * // => [{ 'name': 'apple', 'organic': false, 'type': 'fruit' }]
+     * _.reject(characters, 'blocked');
+     * // => [{ 'name': 'barney', 'age': 36, 'blocked': false }]
      *
      * // using "_.where" callback shorthand
-     * _.reject(food, { 'type': 'fruit' });
-     * // => [{ 'name': 'carrot', 'organic': true, 'type': 'vegetable' }]
+     * _.reject(characters, { 'age': 36 });
+     * // => [{ 'name': 'fred', 'age': 40, 'blocked': true }]
      */
     function reject(collection, callback, thisArg) {
       callback = lodash.createCallback(callback, thisArg, 3);
@@ -13175,8 +13809,8 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @category Collections
      * @param {Array|Object|string} collection The collection to sample.
      * @param {number} [n] The number of elements to sample.
-     * @param- {Object} [guard] Allows working with functions, like `_.map`,
-     *  without using their `key` and `object` arguments as sources.
+     * @param- {Object} [guard] Allows working with functions like `_.map`
+     *  without using their `index` arguments as `n`.
      * @returns {Array} Returns the random sample(s) of `collection`.
      * @example
      *
@@ -13187,12 +13821,11 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * // => [3, 1]
      */
     function sample(collection, n, guard) {
-      var length = collection ? collection.length : 0;
-      if (typeof length != 'number') {
+      if (collection && typeof collection.length != 'number') {
         collection = values(collection);
       }
       if (n == null || guard) {
-        return collection ? collection[random(length - 1)] : undefined;
+        return collection ? collection[baseRandom(0, collection.length - 1)] : undefined;
       }
       var result = shuffle(collection);
       result.length = nativeMin(nativeMax(0, n), result.length);
@@ -13219,7 +13852,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
           result = Array(typeof length == 'number' ? length : 0);
 
       forEach(collection, function(value) {
-        var rand = random(++index);
+        var rand = baseRandom(0, ++index);
         result[index] = result[rand];
         result[rand] = value;
       });
@@ -13243,8 +13876,8 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * _.size({ 'one': 1, 'two': 2, 'three': 3 });
      * // => 3
      *
-     * _.size('curly');
-     * // => 5
+     * _.size('pebbles');
+     * // => 7
      */
     function size(collection) {
       var length = collection ? collection.length : 0;
@@ -13280,17 +13913,17 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * _.some([null, 0, 'yes', false], Boolean);
      * // => true
      *
-     * var food = [
-     *   { 'name': 'apple',  'organic': false, 'type': 'fruit' },
-     *   { 'name': 'carrot', 'organic': true,  'type': 'vegetable' }
+     * var characters = [
+     *   { 'name': 'barney', 'age': 36, 'blocked': false },
+     *   { 'name': 'fred',   'age': 40, 'blocked': true }
      * ];
      *
      * // using "_.pluck" callback shorthand
-     * _.some(food, 'organic');
+     * _.some(characters, 'blocked');
      * // => true
      *
      * // using "_.where" callback shorthand
-     * _.some(food, { 'type': 'meat' });
+     * _.some(characters, { 'age': 1 });
      * // => false
      */
     function some(collection, callback, thisArg) {
@@ -13324,6 +13957,9 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * If a property name is provided for `callback` the created "_.pluck" style
      * callback will return the property value of the given element.
      *
+     * If an array of property names is provided for `callback` the collection
+     * will be sorted by each property value.
+     *
      * If an object is provided for `callback` the created "_.where" style callback
      * will return `true` for elements that have the properties of the given object,
      * else `false`.
@@ -13332,7 +13968,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @memberOf _
      * @category Collections
      * @param {Array|Object|string} collection The collection to iterate over.
-     * @param {Function|Object|string} [callback=identity] The function called
+     * @param {Array|Function|Object|string} [callback=identity] The function called
      *  per iteration. If a property name or object is provided it will be used
      *  to create a "_.pluck" or "_.where" style callback, respectively.
      * @param {*} [thisArg] The `this` binding of `callback`.
@@ -13345,19 +13981,37 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * _.sortBy([1, 2, 3], function(num) { return this.sin(num); }, Math);
      * // => [3, 1, 2]
      *
+     * var characters = [
+     *   { 'name': 'barney',  'age': 36 },
+     *   { 'name': 'fred',    'age': 40 },
+     *   { 'name': 'barney',  'age': 26 },
+     *   { 'name': 'fred',    'age': 30 }
+     * ];
+     *
      * // using "_.pluck" callback shorthand
-     * _.sortBy(['banana', 'strawberry', 'apple'], 'length');
-     * // => ['apple', 'banana', 'strawberry']
+     * _.map(_.sortBy(characters, 'age'), _.values);
+     * // => [['barney', 26], ['fred', 30], ['barney', 36], ['fred', 40]]
+     *
+     * // sorting by multiple properties
+     * _.map(_.sortBy(characters, ['name', 'age']), _.values);
+     * // = > [['barney', 26], ['barney', 36], ['fred', 30], ['fred', 40]]
      */
     function sortBy(collection, callback, thisArg) {
       var index = -1,
+          isArr = isArray(callback),
           length = collection ? collection.length : 0,
           result = Array(typeof length == 'number' ? length : 0);
 
-      callback = lodash.createCallback(callback, thisArg, 3);
+      if (!isArr) {
+        callback = lodash.createCallback(callback, thisArg, 3);
+      }
       forEach(collection, function(value, key, collection) {
         var object = result[++index] = getObject();
-        object.criteria = callback(value, key, collection);
+        if (isArr) {
+          object.criteria = map(callback, function(key) { return value[key]; });
+        } else {
+          (object.criteria = getArray())[0] = callback(value, key, collection);
+        }
         object.index = index;
         object.value = value;
       });
@@ -13367,6 +14021,9 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
       while (length--) {
         var object = result[length];
         result[length] = object.value;
+        if (!isArr) {
+          releaseArray(object.criteria);
+        }
         releaseObject(object);
       }
       return result;
@@ -13402,20 +14059,20 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @type Function
      * @category Collections
      * @param {Array|Object|string} collection The collection to iterate over.
-     * @param {Object} properties The object of property values to filter by.
+     * @param {Object} props The object of property values to filter by.
      * @returns {Array} Returns a new array of elements that have the given properties.
      * @example
      *
-     * var stooges = [
-     *   { 'name': 'curly', 'age': 30, 'quotes': ['Oh, a wise guy, eh?', 'Poifect!'] },
-     *   { 'name': 'moe', 'age': 40, 'quotes': ['Spread out!', 'You knucklehead!'] }
+     * var characters = [
+     *   { 'name': 'barney', 'age': 36, 'pets': ['hoppy'] },
+     *   { 'name': 'fred',   'age': 40, 'pets': ['baby puss', 'dino'] }
      * ];
      *
-     * _.where(stooges, { 'age': 40 });
-     * // => [{ 'name': 'moe', 'age': 40, 'quotes': ['Spread out!', 'You knucklehead!'] }]
+     * _.where(characters, { 'age': 36 });
+     * // => [{ 'name': 'barney', 'age': 36, 'pets': ['hoppy'] }]
      *
-     * _.where(stooges, { 'quotes': ['Poifect!'] });
-     * // => [{ 'name': 'curly', 'age': 30, 'quotes': ['Oh, a wise guy, eh?', 'Poifect!'] }]
+     * _.where(characters, { 'pets': ['dino'] });
+     * // => [{ 'name': 'fred', 'age': 40, 'pets': ['baby puss', 'dino'] }]
      */
     var where = filter;
 
@@ -13457,7 +14114,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @memberOf _
      * @category Arrays
      * @param {Array} array The array to process.
-     * @param {...Array} [array] The arrays of values to exclude.
+     * @param {...Array} [values] The arrays of values to exclude.
      * @returns {Array} Returns a new array of filtered values.
      * @example
      *
@@ -13465,38 +14122,19 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * // => [1, 3, 4]
      */
     function difference(array) {
-      var index = -1,
-          indexOf = getIndexOf(),
-          length = array ? array.length : 0,
-          seen = baseFlatten(arguments, true, true, 1),
-          result = [];
-
-      var isLarge = length >= largeArraySize && indexOf === baseIndexOf;
-
-      if (isLarge) {
-        var cache = createCache(seen);
-        if (cache) {
-          indexOf = cacheIndexOf;
-          seen = cache;
-        } else {
-          isLarge = false;
-        }
-      }
-      while (++index < length) {
-        var value = array[index];
-        if (indexOf(seen, value) < 0) {
-          result.push(value);
-        }
-      }
-      if (isLarge) {
-        releaseObject(seen);
-      }
-      return result;
+      return baseDifference(array, baseFlatten(arguments, true, true, 1));
     }
 
     /**
      * This method is like `_.find` except that it returns the index of the first
      * element that passes the callback check, instead of the element itself.
+     *
+     * If a property name is provided for `callback` the created "_.pluck" style
+     * callback will return the property value of the given element.
+     *
+     * If an object is provided for `callback` the created "_.where" style callback
+     * will return `true` for elements that have the properties of the given object,
+     * else `false`.
      *
      * @static
      * @memberOf _
@@ -13509,9 +14147,23 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {number} Returns the index of the found element, else `-1`.
      * @example
      *
-     * _.findIndex(['apple', 'banana', 'beet'], function(food) {
-     *   return /^b/.test(food);
+     * var characters = [
+     *   { 'name': 'barney',  'age': 36, 'blocked': false },
+     *   { 'name': 'fred',    'age': 40, 'blocked': true },
+     *   { 'name': 'pebbles', 'age': 1,  'blocked': false }
+     * ];
+     *
+     * _.findIndex(characters, function(chr) {
+     *   return chr.age < 20;
      * });
+     * // => 2
+     *
+     * // using "_.where" callback shorthand
+     * _.findIndex(characters, { 'age': 36 });
+     * // => 0
+     *
+     * // using "_.pluck" callback shorthand
+     * _.findIndex(characters, 'blocked');
      * // => 1
      */
     function findIndex(array, callback, thisArg) {
@@ -13531,6 +14183,13 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * This method is like `_.findIndex` except that it iterates over elements
      * of a `collection` from right to left.
      *
+     * If a property name is provided for `callback` the created "_.pluck" style
+     * callback will return the property value of the given element.
+     *
+     * If an object is provided for `callback` the created "_.where" style callback
+     * will return `true` for elements that have the properties of the given object,
+     * else `false`.
+     *
      * @static
      * @memberOf _
      * @category Arrays
@@ -13542,9 +14201,23 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {number} Returns the index of the found element, else `-1`.
      * @example
      *
-     * _.findLastIndex(['apple', 'banana', 'beet'], function(food) {
-     *   return /^b/.test(food);
+     * var characters = [
+     *   { 'name': 'barney',  'age': 36, 'blocked': true },
+     *   { 'name': 'fred',    'age': 40, 'blocked': false },
+     *   { 'name': 'pebbles', 'age': 1,  'blocked': true }
+     * ];
+     *
+     * _.findLastIndex(characters, function(chr) {
+     *   return chr.age > 30;
      * });
+     * // => 1
+     *
+     * // using "_.where" callback shorthand
+     * _.findLastIndex(characters, { 'age': 36 });
+     * // => 0
+     *
+     * // using "_.pluck" callback shorthand
+     * _.findLastIndex(characters, 'blocked');
      * // => 2
      */
     function findLastIndex(array, callback, thisArg) {
@@ -13595,24 +14268,19 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * });
      * // => [1, 2]
      *
-     * var food = [
-     *   { 'name': 'banana', 'organic': true },
-     *   { 'name': 'beet',   'organic': false },
+     * var characters = [
+     *   { 'name': 'barney',  'blocked': true,  'employer': 'slate' },
+     *   { 'name': 'fred',    'blocked': false, 'employer': 'slate' },
+     *   { 'name': 'pebbles', 'blocked': true,  'employer': 'na' }
      * ];
      *
      * // using "_.pluck" callback shorthand
-     * _.first(food, 'organic');
-     * // => [{ 'name': 'banana', 'organic': true }]
-     *
-     * var food = [
-     *   { 'name': 'apple',  'type': 'fruit' },
-     *   { 'name': 'banana', 'type': 'fruit' },
-     *   { 'name': 'beet',   'type': 'vegetable' }
-     * ];
+     * _.first(characters, 'blocked');
+     * // => [{ 'name': 'barney', 'blocked': true, 'employer': 'slate' }]
      *
      * // using "_.where" callback shorthand
-     * _.first(food, { 'type': 'fruit' });
-     * // => [{ 'name': 'apple', 'type': 'fruit' }, { 'name': 'banana', 'type': 'fruit' }]
+     * _.pluck(_.first(characters, { 'employer': 'slate' }), 'name');
+     * // => ['barney', 'fred']
      */
     function first(array, callback, thisArg) {
       var n = 0,
@@ -13665,20 +14333,20 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * _.flatten([1, [2], [3, [[4]]]], true);
      * // => [1, 2, 3, [[4]]];
      *
-     * var stooges = [
-     *   { 'name': 'curly', 'quotes': ['Oh, a wise guy, eh?', 'Poifect!'] },
-     *   { 'name': 'moe', 'quotes': ['Spread out!', 'You knucklehead!'] }
+     * var characters = [
+     *   { 'name': 'barney', 'age': 30, 'pets': ['hoppy'] },
+     *   { 'name': 'fred',   'age': 40, 'pets': ['baby puss', 'dino'] }
      * ];
      *
      * // using "_.pluck" callback shorthand
-     * _.flatten(stooges, 'quotes');
-     * // => ['Oh, a wise guy, eh?', 'Poifect!', 'Spread out!', 'You knucklehead!']
+     * _.flatten(characters, 'pets');
+     * // => ['hoppy', 'baby puss', 'dino']
      */
     function flatten(array, isShallow, callback, thisArg) {
       // juggle arguments
       if (typeof isShallow != 'boolean' && isShallow != null) {
         thisArg = callback;
-        callback = !(thisArg && thisArg[isShallow] === array) ? isShallow : null;
+        callback = (typeof isShallow != 'function' && thisArg && thisArg[isShallow] === array) ? null : isShallow;
         isShallow = false;
       }
       if (callback != null) {
@@ -13758,24 +14426,19 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * });
      * // => [1]
      *
-     * var food = [
-     *   { 'name': 'beet',   'organic': false },
-     *   { 'name': 'carrot', 'organic': true }
+     * var characters = [
+     *   { 'name': 'barney',  'blocked': false, 'employer': 'slate' },
+     *   { 'name': 'fred',    'blocked': true,  'employer': 'slate' },
+     *   { 'name': 'pebbles', 'blocked': true,  'employer': 'na' }
      * ];
      *
      * // using "_.pluck" callback shorthand
-     * _.initial(food, 'organic');
-     * // => [{ 'name': 'beet',   'organic': false }]
-     *
-     * var food = [
-     *   { 'name': 'banana', 'type': 'fruit' },
-     *   { 'name': 'beet',   'type': 'vegetable' },
-     *   { 'name': 'carrot', 'type': 'vegetable' }
-     * ];
+     * _.initial(characters, 'blocked');
+     * // => [{ 'name': 'barney',  'blocked': false, 'employer': 'slate' }]
      *
      * // using "_.where" callback shorthand
-     * _.initial(food, { 'type': 'vegetable' });
-     * // => [{ 'name': 'banana', 'type': 'fruit' }]
+     * _.pluck(_.initial(characters, { 'employer': 'na' }), 'name');
+     * // => ['barney', 'fred']
      */
     function initial(array, callback, thisArg) {
       var n = 0,
@@ -13801,29 +14464,34 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @memberOf _
      * @category Arrays
      * @param {...Array} [array] The arrays to inspect.
-     * @returns {Array} Returns an array of composite values.
+     * @returns {Array} Returns an array of shared values.
      * @example
      *
-     * _.intersection([1, 2, 3], [101, 2, 1, 10], [2, 1]);
+     * _.intersection([1, 2, 3], [5, 2, 1, 4], [2, 1]);
      * // => [1, 2]
      */
-    function intersection(array) {
-      var args = arguments,
-          argsLength = args.length,
+    function intersection() {
+      var args = [],
           argsIndex = -1,
+          argsLength = arguments.length,
           caches = getArray(),
-          index = -1,
           indexOf = getIndexOf(),
-          length = array ? array.length : 0,
-          result = [],
+          trustIndexOf = indexOf === baseIndexOf,
           seen = getArray();
 
       while (++argsIndex < argsLength) {
-        var value = args[argsIndex];
-        caches[argsIndex] = indexOf === baseIndexOf &&
-          (value ? value.length : 0) >= largeArraySize &&
-          createCache(argsIndex ? args[argsIndex] : seen);
+        var value = arguments[argsIndex];
+        if (isArray(value) || isArguments(value)) {
+          args.push(value);
+          caches.push(trustIndexOf && value.length >= largeArraySize &&
+            createCache(argsIndex ? args[argsIndex] : seen));
+        }
       }
+      var array = args[0],
+          index = -1,
+          length = array ? array.length : 0,
+          result = [];
+
       outer:
       while (++index < length) {
         var cache = caches[0];
@@ -13888,24 +14556,19 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * });
      * // => [2, 3]
      *
-     * var food = [
-     *   { 'name': 'beet',   'organic': false },
-     *   { 'name': 'carrot', 'organic': true }
+     * var characters = [
+     *   { 'name': 'barney',  'blocked': false, 'employer': 'slate' },
+     *   { 'name': 'fred',    'blocked': true,  'employer': 'slate' },
+     *   { 'name': 'pebbles', 'blocked': true,  'employer': 'na' }
      * ];
      *
      * // using "_.pluck" callback shorthand
-     * _.last(food, 'organic');
-     * // => [{ 'name': 'carrot', 'organic': true }]
-     *
-     * var food = [
-     *   { 'name': 'banana', 'type': 'fruit' },
-     *   { 'name': 'beet',   'type': 'vegetable' },
-     *   { 'name': 'carrot', 'type': 'vegetable' }
-     * ];
+     * _.pluck(_.last(characters, 'blocked'), 'name');
+     * // => ['fred', 'pebbles']
      *
      * // using "_.where" callback shorthand
-     * _.last(food, { 'type': 'vegetable' });
-     * // => [{ 'name': 'beet', 'type': 'vegetable' }, { 'name': 'carrot', 'type': 'vegetable' }]
+     * _.last(characters, { 'employer': 'na' });
+     * // => [{ 'name': 'pebbles', 'blocked': true, 'employer': 'na' }]
      */
     function last(array, callback, thisArg) {
       var n = 0,
@@ -13930,6 +14593,13 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * Gets the index at which the last occurrence of `value` is found using strict
      * equality for comparisons, i.e. `===`. If `fromIndex` is negative, it is used
      * as the offset from the end of the collection.
+     *
+     * If a property name is provided for `callback` the created "_.pluck" style
+     * callback will return the property value of the given element.
+     *
+     * If an object is provided for `callback` the created "_.where" style callback
+     * will return `true` for elements that have the properties of the given object,
+     * else `false`.
      *
      * @static
      * @memberOf _
@@ -14009,17 +14679,17 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {Array} Returns a new range array.
      * @example
      *
-     * _.range(10);
-     * // => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+     * _.range(4);
+     * // => [0, 1, 2, 3]
      *
-     * _.range(1, 11);
-     * // => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+     * _.range(1, 5);
+     * // => [1, 2, 3, 4]
      *
-     * _.range(0, 30, 5);
-     * // => [0, 5, 10, 15, 20, 25]
+     * _.range(0, 20, 5);
+     * // => [0, 5, 10, 15]
      *
-     * _.range(0, -10, -1);
-     * // => [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]
+     * _.range(0, -4, -1);
+     * // => [0, -1, -2, -3]
      *
      * _.range(1, 4, 0);
      * // => [1, 1, 1]
@@ -14035,7 +14705,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
         end = start;
         start = 0;
       }
-      // use `Array(length)` so engines, like Chakra and V8, avoid slower modes
+      // use `Array(length)` so engines like Chakra and V8 avoid slower modes
       // http://youtu.be/XAqIpGU8ZZk#t=17m25s
       var index = -1,
           length = nativeMax(0, ceil((end - start) / (step || 1))),
@@ -14135,24 +14805,19 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * });
      * // => [3]
      *
-     * var food = [
-     *   { 'name': 'banana', 'organic': true },
-     *   { 'name': 'beet',   'organic': false },
+     * var characters = [
+     *   { 'name': 'barney',  'blocked': true,  'employer': 'slate' },
+     *   { 'name': 'fred',    'blocked': false,  'employer': 'slate' },
+     *   { 'name': 'pebbles', 'blocked': true, 'employer': 'na' }
      * ];
      *
      * // using "_.pluck" callback shorthand
-     * _.rest(food, 'organic');
-     * // => [{ 'name': 'beet', 'organic': false }]
-     *
-     * var food = [
-     *   { 'name': 'apple',  'type': 'fruit' },
-     *   { 'name': 'banana', 'type': 'fruit' },
-     *   { 'name': 'beet',   'type': 'vegetable' }
-     * ];
+     * _.pluck(_.rest(characters, 'blocked'), 'name');
+     * // => ['fred', 'pebbles']
      *
      * // using "_.where" callback shorthand
-     * _.rest(food, { 'type': 'fruit' });
-     * // => [{ 'name': 'beet', 'type': 'vegetable' }]
+     * _.rest(characters, { 'employer': 'slate' });
+     * // => [{ 'name': 'pebbles', 'blocked': true, 'employer': 'na' }]
      */
     function rest(array, callback, thisArg) {
       if (typeof callback != 'number' && callback != null) {
@@ -14243,13 +14908,13 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @memberOf _
      * @category Arrays
      * @param {...Array} [array] The arrays to inspect.
-     * @returns {Array} Returns an array of composite values.
+     * @returns {Array} Returns an array of combined values.
      * @example
      *
-     * _.union([1, 2, 3], [101, 2, 1, 10], [2, 1]);
-     * // => [1, 2, 3, 101, 10]
+     * _.union([1, 2, 3], [5, 2, 1, 4], [2, 1]);
+     * // => [1, 2, 3, 5, 4]
      */
-    function union(array) {
+    function union() {
       return baseUniq(baseFlatten(arguments, true, true));
     }
 
@@ -14301,7 +14966,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
       // juggle arguments
       if (typeof isSorted != 'boolean' && isSorted != null) {
         thisArg = callback;
-        callback = !(thisArg && thisArg[isSorted] === array) ? isSorted : null;
+        callback = (typeof isSorted != 'function' && thisArg && thisArg[isSorted] === array) ? null : isSorted;
         isSorted = false;
       }
       if (callback != null) {
@@ -14326,7 +14991,39 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * // => [2, 3, 4]
      */
     function without(array) {
-      return difference(array, nativeSlice.call(arguments, 1));
+      return baseDifference(array, slice(arguments, 1));
+    }
+
+    /**
+     * Creates an array that is the symmetric difference of the provided arrays.
+     * See http://en.wikipedia.org/wiki/Symmetric_difference.
+     *
+     * @static
+     * @memberOf _
+     * @category Arrays
+     * @param {...Array} [array] The arrays to inspect.
+     * @returns {Array} Returns an array of values.
+     * @example
+     *
+     * _.xor([1, 2, 3], [5, 2, 1, 4]);
+     * // => [3, 5, 4]
+     *
+     * _.xor([1, 2, 5], [2, 3, 5], [3, 4, 5]);
+     * // => [1, 4, 5]
+     */
+    function xor() {
+      var index = -1,
+          length = arguments.length;
+
+      while (++index < length) {
+        var array = arguments[index];
+        if (isArray(array) || isArguments(array)) {
+          var result = result
+            ? baseUniq(baseDifference(result, array).concat(baseDifference(array, result)))
+            : array;
+        }
+      }
+      return result || [];
     }
 
     /**
@@ -14342,8 +15039,8 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {Array} Returns a new array of grouped elements.
      * @example
      *
-     * _.zip(['moe', 'larry'], [30, 40], [true, false]);
-     * // => [['moe', 30, true], ['larry', 40, false]]
+     * _.zip(['fred', 'barney'], [30, 40], [true, false]);
+     * // => [['fred', 30, true], ['barney', 40, false]]
      */
     function zip() {
       var array = arguments.length > 1 ? arguments : arguments[0],
@@ -14372,14 +15069,17 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      *  corresponding values.
      * @example
      *
-     * _.zipObject(['moe', 'larry'], [30, 40]);
-     * // => { 'moe': 30, 'larry': 40 }
+     * _.zipObject(['fred', 'barney'], [30, 40]);
+     * // => { 'fred': 30, 'barney': 40 }
      */
     function zipObject(keys, values) {
       var index = -1,
           length = keys ? keys.length : 0,
           result = {};
 
+      if (!values && length && !isArray(keys[0])) {
+        values = [];
+      }
       while (++index < length) {
         var key = keys[index];
         if (values) {
@@ -14446,14 +15146,14 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      *   return greeting + ' ' + this.name;
      * };
      *
-     * func = _.bind(func, { 'name': 'moe' }, 'hi');
+     * func = _.bind(func, { 'name': 'fred' }, 'hi');
      * func();
-     * // => 'hi moe'
+     * // => 'hi fred'
      */
     function bind(func, thisArg) {
       return arguments.length > 2
-        ? createBound(func, 17, nativeSlice.call(arguments, 2), null, thisArg)
-        : createBound(func, 1, null, null, thisArg);
+        ? createWrapper(func, 17, slice(arguments, 2), null, thisArg)
+        : createWrapper(func, 1, null, null, thisArg);
     }
 
     /**
@@ -14472,8 +15172,8 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @example
      *
      * var view = {
-     *  'label': 'docs',
-     *  'onClick': function() { console.log('clicked ' + this.label); }
+     *   'label': 'docs',
+     *   'onClick': function() { console.log('clicked ' + this.label); }
      * };
      *
      * _.bindAll(view);
@@ -14487,7 +15187,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
 
       while (++index < length) {
         var key = funcs[index];
-        object[key] = createBound(object[key], 1, null, null, object);
+        object[key] = createWrapper(object[key], 1, null, null, object);
       }
       return object;
     }
@@ -14509,7 +15209,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @example
      *
      * var object = {
-     *   'name': 'moe',
+     *   'name': 'fred',
      *   'greet': function(greeting) {
      *     return greeting + ' ' + this.name;
      *   }
@@ -14517,19 +15217,19 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      *
      * var func = _.bindKey(object, 'greet', 'hi');
      * func();
-     * // => 'hi moe'
+     * // => 'hi fred'
      *
      * object.greet = function(greeting) {
-     *   return greeting + ', ' + this.name + '!';
+     *   return greeting + 'ya ' + this.name + '!';
      * };
      *
      * func();
-     * // => 'hi, moe!'
+     * // => 'hiya fred!'
      */
     function bindKey(object, key) {
       return arguments.length > 2
-        ? createBound(key, 19, nativeSlice.call(arguments, 2), null, object)
-        : createBound(key, 3, null, null, object);
+        ? createWrapper(key, 19, slice(arguments, 2), null, object)
+        : createWrapper(key, 3, null, null, object);
     }
 
     /**
@@ -14546,7 +15246,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @example
      *
      * var realNameMap = {
-     *   'curly': 'jerome'
+     *   'pebbles': 'penelope'
      * };
      *
      * var format = function(name) {
@@ -14559,8 +15259,8 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * };
      *
      * var welcome = _.compose(greet, format);
-     * welcome('curly');
-     * // => 'Hiya Jerome!'
+     * welcome('pebbles');
+     * // => 'Hiya Penelope!'
      */
     function compose() {
       var funcs = arguments,
@@ -14579,74 +15279,6 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
           args = [funcs[length].apply(this, args)];
         }
         return args[0];
-      };
-    }
-
-    /**
-     * Produces a callback bound to an optional `thisArg`. If `func` is a property
-     * name the created callback will return the property value for a given element.
-     * If `func` is an object the created callback will return `true` for elements
-     * that contain the equivalent object properties, otherwise it will return `false`.
-     *
-     * @static
-     * @memberOf _
-     * @category Functions
-     * @param {*} [func=identity] The value to convert to a callback.
-     * @param {*} [thisArg] The `this` binding of the created callback.
-     * @param {number} [argCount] The number of arguments the callback accepts.
-     * @returns {Function} Returns a callback function.
-     * @example
-     *
-     * var stooges = [
-     *   { 'name': 'moe', 'age': 40 },
-     *   { 'name': 'larry', 'age': 50 }
-     * ];
-     *
-     * // wrap to create custom callback shorthands
-     * _.createCallback = _.wrap(_.createCallback, function(func, callback, thisArg) {
-     *   var match = /^(.+?)__([gl]t)(.+)$/.exec(callback);
-     *   return !match ? func(callback, thisArg) : function(object) {
-     *     return match[2] == 'gt' ? object[match[1]] > match[3] : object[match[1]] < match[3];
-     *   };
-     * });
-     *
-     * _.filter(stooges, 'age__gt45');
-     * // => [{ 'name': 'larry', 'age': 50 }]
-     */
-    function createCallback(func, thisArg, argCount) {
-      var type = typeof func;
-      if (func == null || type == 'function') {
-        return baseCreateCallback(func, thisArg, argCount);
-      }
-      // handle "_.pluck" style callback shorthands
-      if (type != 'object') {
-        return function(object) {
-          return object[func];
-        };
-      }
-      var props = keys(func),
-          key = props[0],
-          a = func[key];
-
-      // handle "_.where" style callback shorthands
-      if (props.length == 1 && a === a && !isObject(a)) {
-        // fast path the common case of providing an object with a single
-        // property containing a primitive value
-        return function(object) {
-          var b = object[key];
-          return a === b && (a !== 0 || (1 / a == 1 / b));
-        };
-      }
-      return function(object) {
-        var length = props.length,
-            result = false;
-
-        while (length--) {
-          if (!(result = baseIsEqual(object[props[length]], func[props[length]], null, true))) {
-            break;
-          }
-        }
-        return result;
       };
     }
 
@@ -14680,7 +15312,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      */
     function curry(func, arity) {
       arity = typeof arity == 'number' ? arity : (+arity || func.length);
-      return createBound(func, 4, null, null, null, arity);
+      return createWrapper(func, 4, null, null, null, arity);
     }
 
     /**
@@ -14757,6 +15389,9 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
           if (isCalled) {
             lastCalled = now();
             result = func.apply(thisArg, args);
+            if (!timeoutId && !maxTimeoutId) {
+              args = thisArg = null;
+            }
           }
         } else {
           timeoutId = setTimeout(delayed, remaining);
@@ -14771,6 +15406,9 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
         if (trailing || (maxWait !== wait)) {
           lastCalled = now();
           result = func.apply(thisArg, args);
+          if (!timeoutId && !maxTimeoutId) {
+            args = thisArg = null;
+          }
         }
       };
 
@@ -14786,8 +15424,10 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
           if (!maxTimeoutId && !leading) {
             lastCalled = stamp;
           }
-          var remaining = maxWait - (stamp - lastCalled);
-          if (remaining <= 0) {
+          var remaining = maxWait - (stamp - lastCalled),
+              isCalled = remaining <= 0;
+
+          if (isCalled) {
             if (maxTimeoutId) {
               maxTimeoutId = clearTimeout(maxTimeoutId);
             }
@@ -14798,11 +15438,18 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             maxTimeoutId = setTimeout(maxDelayed, remaining);
           }
         }
-        if (!timeoutId && wait !== maxWait) {
+        if (isCalled && timeoutId) {
+          timeoutId = clearTimeout(timeoutId);
+        }
+        else if (!timeoutId && wait !== maxWait) {
           timeoutId = setTimeout(delayed, wait);
         }
         if (leadingCall) {
+          isCalled = true;
           result = func.apply(thisArg, args);
+        }
+        if (isCalled && !timeoutId && !maxTimeoutId) {
+          args = thisArg = null;
         }
         return result;
       };
@@ -14820,24 +15467,15 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {number} Returns the timer id.
      * @example
      *
-     * _.defer(function() { console.log('deferred'); });
-     * // returns from the function before 'deferred' is logged
+     * _.defer(function(text) { console.log(text); }, 'deferred');
+     * // logs 'deferred' after one or more milliseconds
      */
     function defer(func) {
       if (!isFunction(func)) {
         throw new TypeError;
       }
-      var args = nativeSlice.call(arguments, 1);
+      var args = slice(arguments, 1);
       return setTimeout(function() { func.apply(undefined, args); }, 1);
-    }
-    // use `setImmediate` if available in Node.js
-    if (isV8 && moduleExports && typeof setImmediate == 'function') {
-      defer = function(func) {
-        if (!isFunction(func)) {
-          throw new TypeError;
-        }
-        return setImmediate.apply(context, arguments);
-      };
     }
 
     /**
@@ -14853,15 +15491,14 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {number} Returns the timer id.
      * @example
      *
-     * var log = _.bind(console.log, console);
-     * _.delay(log, 1000, 'logged later');
-     * // => 'logged later' (Appears after one second.)
+     * _.delay(function(text) { console.log(text); }, 1000, 'later');
+     * // => logs 'later' after one second
      */
     function delay(func, wait) {
       if (!isFunction(func)) {
         throw new TypeError;
       }
-      var args = nativeSlice.call(arguments, 2);
+      var args = slice(arguments, 2);
       return setTimeout(function() { func.apply(undefined, args); }, wait);
     }
 
@@ -14885,19 +15522,22 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      *   return n < 2 ? n : fibonacci(n - 1) + fibonacci(n - 2);
      * });
      *
+     * fibonacci(9)
+     * // => 34
+     *
      * var data = {
-     *   'moe': { 'name': 'moe', 'age': 40 },
-     *   'curly': { 'name': 'curly', 'age': 60 }
+     *   'fred': { 'name': 'fred', 'age': 40 },
+     *   'pebbles': { 'name': 'pebbles', 'age': 1 }
      * };
      *
      * // modifying the result cache
-     * var stooge = _.memoize(function(name) { return data[name]; }, _.identity);
-     * stooge('curly');
-     * // => { 'name': 'curly', 'age': 60 }
+     * var get = _.memoize(function(name) { return data[name]; }, _.identity);
+     * get('pebbles');
+     * // => { 'name': 'pebbles', 'age': 1 }
      *
-     * stooge.cache.curly.name = 'jerome';
-     * stooge('curly');
-     * // => { 'name': 'jerome', 'age': 60 }
+     * get.cache.pebbles.name = 'penelope';
+     * get('pebbles');
+     * // => { 'name': 'penelope', 'age': 1 }
      */
     function memoize(func, resolver) {
       if (!isFunction(func)) {
@@ -14967,11 +15607,11 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      *
      * var greet = function(greeting, name) { return greeting + ' ' + name; };
      * var hi = _.partial(greet, 'hi');
-     * hi('moe');
-     * // => 'hi moe'
+     * hi('fred');
+     * // => 'hi fred'
      */
     function partial(func) {
-      return createBound(func, 16, nativeSlice.call(arguments, 1));
+      return createWrapper(func, 16, slice(arguments, 1));
     }
 
     /**
@@ -15002,7 +15642,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * // => { '_': _, 'jq': $ }
      */
     function partialRight(func) {
-      return createBound(func, 32, null, nativeSlice.call(arguments, 1));
+      return createWrapper(func, 32, null, slice(arguments, 1));
     }
 
     /**
@@ -15053,8 +15693,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
       debounceOptions.maxWait = wait;
       debounceOptions.trailing = trailing;
 
-      var result = debounce(func, wait, debounceOptions);
-      return result;
+      return debounce(func, wait, debounceOptions);
     }
 
     /**
@@ -15071,25 +15710,105 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {Function} Returns the new function.
      * @example
      *
-     * var hello = function(name) { return 'hello ' + name; };
-     * hello = _.wrap(hello, function(func) {
-     *   return 'before, ' + func('moe') + ', after';
+     * var p = _.wrap(_.escape, function(func, text) {
+     *   return '<p>' + func(text) + '</p>';
      * });
-     * hello();
-     * // => 'before, hello moe, after'
+     *
+     * p('Fred, Wilma, & Pebbles');
+     * // => '<p>Fred, Wilma, &amp; Pebbles</p>'
      */
     function wrap(value, wrapper) {
-      if (!isFunction(wrapper)) {
-        throw new TypeError;
-      }
-      return function() {
-        var args = [value];
-        push.apply(args, arguments);
-        return wrapper.apply(this, args);
-      };
+      return createWrapper(wrapper, 16, [value]);
     }
 
     /*--------------------------------------------------------------------------*/
+
+    /**
+     * Creates a function that returns `value`.
+     *
+     * @static
+     * @memberOf _
+     * @category Utilities
+     * @param {*} value The value to return from the new function.
+     * @returns {Function} Returns the new function.
+     * @example
+     *
+     * var object = { 'name': 'fred' };
+     * var getter = _.constant(object);
+     * getter() === object;
+     * // => true
+     */
+    function constant(value) {
+      return function() {
+        return value;
+      };
+    }
+
+    /**
+     * Produces a callback bound to an optional `thisArg`. If `func` is a property
+     * name the created callback will return the property value for a given element.
+     * If `func` is an object the created callback will return `true` for elements
+     * that contain the equivalent object properties, otherwise it will return `false`.
+     *
+     * @static
+     * @memberOf _
+     * @category Utilities
+     * @param {*} [func=identity] The value to convert to a callback.
+     * @param {*} [thisArg] The `this` binding of the created callback.
+     * @param {number} [argCount] The number of arguments the callback accepts.
+     * @returns {Function} Returns a callback function.
+     * @example
+     *
+     * var characters = [
+     *   { 'name': 'barney', 'age': 36 },
+     *   { 'name': 'fred',   'age': 40 }
+     * ];
+     *
+     * // wrap to create custom callback shorthands
+     * _.createCallback = _.wrap(_.createCallback, function(func, callback, thisArg) {
+     *   var match = /^(.+?)__([gl]t)(.+)$/.exec(callback);
+     *   return !match ? func(callback, thisArg) : function(object) {
+     *     return match[2] == 'gt' ? object[match[1]] > match[3] : object[match[1]] < match[3];
+     *   };
+     * });
+     *
+     * _.filter(characters, 'age__gt38');
+     * // => [{ 'name': 'fred', 'age': 40 }]
+     */
+    function createCallback(func, thisArg, argCount) {
+      var type = typeof func;
+      if (func == null || type == 'function') {
+        return baseCreateCallback(func, thisArg, argCount);
+      }
+      // handle "_.pluck" style callback shorthands
+      if (type != 'object') {
+        return property(func);
+      }
+      var props = keys(func),
+          key = props[0],
+          a = func[key];
+
+      // handle "_.where" style callback shorthands
+      if (props.length == 1 && a === a && !isObject(a)) {
+        // fast path the common case of providing an object with a single
+        // property containing a primitive value
+        return function(object) {
+          var b = object[key];
+          return a === b && (a !== 0 || (1 / a == 1 / b));
+        };
+      }
+      return function(object) {
+        var length = props.length,
+            result = false;
+
+        while (length--) {
+          if (!(result = baseIsEqual(object[props[length]], func[props[length]], null, true))) {
+            break;
+          }
+        }
+        return result;
+      };
+    }
 
     /**
      * Converts the characters `&`, `<`, `>`, `"`, and `'` in `string` to their
@@ -15102,8 +15821,8 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {string} Returns the escaped string.
      * @example
      *
-     * _.escape('Moe, Larry & Curly');
-     * // => 'Moe, Larry &amp; Curly'
+     * _.escape('Fred, Wilma, & Pebbles');
+     * // => 'Fred, Wilma, &amp; Pebbles'
      */
     function escape(string) {
       return string == null ? '' : String(string).replace(reUnescapedHtml, escapeHtmlChar);
@@ -15119,8 +15838,8 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {*} Returns `value`.
      * @example
      *
-     * var moe = { 'name': 'moe' };
-     * moe === _.identity(moe);
+     * var object = { 'name': 'fred' };
+     * _.identity(object) === object;
      * // => true
      */
     function identity(value) {
@@ -15128,51 +15847,71 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     }
 
     /**
-     * Adds function properties of a source object to the `lodash` function and
-     * chainable wrapper.
+     * Adds function properties of a source object to the destination object.
+     * If `object` is a function methods will be added to its prototype as well.
      *
      * @static
      * @memberOf _
      * @category Utilities
-     * @param {Object} object The object of function properties to add to `lodash`.
-     * @param {Object} object The object of function properties to add to `lodash`.
+     * @param {Function|Object} [object=lodash] object The destination object.
+     * @param {Object} source The object of functions to add.
+     * @param {Object} [options] The options object.
+     * @param {boolean} [options.chain=true] Specify whether the functions added are chainable.
      * @example
      *
-     * _.mixin({
-     *   'capitalize': function(string) {
-     *     return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
-     *   }
-     * });
+     * function capitalize(string) {
+     *   return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+     * }
      *
-     * _.capitalize('moe');
-     * // => 'Moe'
+     * _.mixin({ 'capitalize': capitalize });
+     * _.capitalize('fred');
+     * // => 'Fred'
      *
-     * _('moe').capitalize();
-     * // => 'Moe'
+     * _('fred').capitalize().value();
+     * // => 'Fred'
+     *
+     * _.mixin({ 'capitalize': capitalize }, { 'chain': false });
+     * _('fred').capitalize();
+     * // => 'Fred'
      */
-    function mixin(object, source) {
-      var ctor = object,
-          isFunc = !source || isFunction(ctor);
+    function mixin(object, source, options) {
+      var chain = true,
+          methodNames = source && functions(source);
 
-      if (!source) {
+      if (!source || (!options && !methodNames.length)) {
+        if (options == null) {
+          options = source;
+        }
         ctor = lodashWrapper;
         source = object;
         object = lodash;
+        methodNames = functions(source);
       }
-      forEach(functions(source), function(methodName) {
+      if (options === false) {
+        chain = false;
+      } else if (isObject(options) && 'chain' in options) {
+        chain = options.chain;
+      }
+      var ctor = object,
+          isFunc = isFunction(ctor);
+
+      forEach(methodNames, function(methodName) {
         var func = object[methodName] = source[methodName];
         if (isFunc) {
           ctor.prototype[methodName] = function() {
-            var value = this.__wrapped__,
+            var chainAll = this.__chain__,
+                value = this.__wrapped__,
                 args = [value];
 
             push.apply(args, arguments);
             var result = func.apply(object, args);
-            if (value && typeof value == 'object' && value === result) {
-              return this;
+            if (chain || chainAll) {
+              if (value === result && isObject(result)) {
+                return this;
+              }
+              result = new ctor(result);
+              result.__chain__ = chainAll;
             }
-            result = new ctor(result);
-            result.__chain__ = this.__chain__;
             return result;
           };
         }
@@ -15197,6 +15936,39 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     }
 
     /**
+     * A no-operation function.
+     *
+     * @static
+     * @memberOf _
+     * @category Utilities
+     * @example
+     *
+     * var object = { 'name': 'fred' };
+     * _.noop(object) === undefined;
+     * // => true
+     */
+    function noop() {
+      // no operation performed
+    }
+
+    /**
+     * Gets the number of milliseconds that have elapsed since the Unix epoch
+     * (1 January 1970 00:00:00 UTC).
+     *
+     * @static
+     * @memberOf _
+     * @category Utilities
+     * @example
+     *
+     * var stamp = _.now();
+     * _.defer(function() { console.log(_.now() - stamp); });
+     * // => logs the number of milliseconds it took for the deferred function to be called
+     */
+    var now = isNative(now = Date.now) && now || function() {
+      return new Date().getTime();
+    };
+
+    /**
      * Converts the given value into an integer of the specified radix.
      * If `radix` is `undefined` or `0` a `radix` of `10` is used unless the
      * `value` is a hexadecimal, in which case a `radix` of `16` is used.
@@ -15216,9 +15988,39 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * // => 8
      */
     var parseInt = nativeParseInt(whitespace + '08') == 8 ? nativeParseInt : function(value, radix) {
-      // Firefox and Opera still follow the ES3 specified implementation of `parseInt`
+      // Firefox < 21 and Opera < 15 follow the ES3 specified implementation of `parseInt`
       return nativeParseInt(isString(value) ? value.replace(reLeadingSpacesAndZeros, '') : value, radix || 0);
     };
+
+    /**
+     * Creates a "_.pluck" style function, which returns the `key` value of a
+     * given object.
+     *
+     * @static
+     * @memberOf _
+     * @category Utilities
+     * @param {string} key The name of the property to retrieve.
+     * @returns {Function} Returns the new function.
+     * @example
+     *
+     * var characters = [
+     *   { 'name': 'fred',   'age': 40 },
+     *   { 'name': 'barney', 'age': 36 }
+     * ];
+     *
+     * var getName = _.property('name');
+     *
+     * _.map(characters, getName);
+     * // => ['barney', 'fred']
+     *
+     * _.sortBy(characters, getName);
+     * // => [{ 'name': 'barney', 'age': 36 }, { 'name': 'fred',   'age': 40 }]
+     */
+    function property(key) {
+      return function(object) {
+        return object[key];
+      };
+    }
 
     /**
      * Produces a random number between `min` and `max` (inclusive). If only one
@@ -15271,14 +16073,15 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
       } else {
         max = +max || 0;
       }
-      var rand = nativeRandom();
-      return (floating || min % 1 || max % 1)
-        ? nativeMin(min + (rand * (max - min + parseFloat('1e-' + ((rand +'').length - 1)))), max)
-        : min + floor(rand * (max - min + 1));
+      if (floating || min % 1 || max % 1) {
+        var rand = nativeRandom();
+        return nativeMin(min + (rand * (max - min + parseFloat('1e-' + ((rand +'').length - 1)))), max);
+      }
+      return baseRandom(min, max);
     }
 
     /**
-     * Resolves the value of `property` on `object`. If `property` is a function
+     * Resolves the value of property `key` on `object`. If `key` is a function
      * it will be invoked with the `this` binding of `object` and its result returned,
      * else the property value is returned. If `object` is falsey then `undefined`
      * is returned.
@@ -15287,7 +16090,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @memberOf _
      * @category Utilities
      * @param {Object} object The object to inspect.
-     * @param {string} property The property to get the value of.
+     * @param {string} key The name of the property to resolve.
      * @returns {*} Returns the resolved value.
      * @example
      *
@@ -15304,10 +16107,10 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * _.result(object, 'stuff');
      * // => 'nonsense'
      */
-    function result(object, property) {
+    function result(object, key) {
       if (object) {
-        var value = object[property];
-        return isFunction(value) ? object[property]() : value;
+        var value = object[key];
+        return isFunction(value) ? object[key]() : value;
       }
     }
 
@@ -15319,7 +16122,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * debugging. See http://www.html5rocks.com/en/tutorials/developertools/sourcemaps/#toc-sourceurl
      *
      * For more information on precompiling templates see:
-     * http://lodash.com/#custom-builds
+     * http://lodash.com/custom-builds
      *
      * For more information on Chrome extension sandboxes see:
      * http://developer.chrome.com/stable/extensions/sandboxingEval.html
@@ -15342,8 +16145,8 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      *
      * // using the "interpolate" delimiter to create a compiled template
      * var compiled = _.template('hello <%= name %>');
-     * compiled({ 'name': 'moe' });
-     * // => 'hello moe'
+     * compiled({ 'name': 'fred' });
+     * // => 'hello fred'
      *
      * // using the "escape" delimiter to escape HTML in data property values
      * _.template('<b><%- value %></b>', { 'value': '<script>' });
@@ -15351,16 +16154,16 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      *
      * // using the "evaluate" delimiter to generate HTML
      * var list = '<% _.forEach(people, function(name) { %><li><%- name %></li><% }); %>';
-     * _.template(list, { 'people': ['moe', 'larry'] });
-     * // => '<li>moe</li><li>larry</li>'
+     * _.template(list, { 'people': ['fred', 'barney'] });
+     * // => '<li>fred</li><li>barney</li>'
      *
      * // using the ES6 delimiter as an alternative to the default "interpolate" delimiter
-     * _.template('hello ${ name }', { 'name': 'curly' });
-     * // => 'hello curly'
+     * _.template('hello ${ name }', { 'name': 'pebbles' });
+     * // => 'hello pebbles'
      *
      * // using the internal `print` function in "evaluate" delimiters
-     * _.template('<% print("hello " + name); %>!', { 'name': 'larry' });
-     * // => 'hello larry!'
+     * _.template('<% print("hello " + name); %>!', { 'name': 'barney' });
+     * // => 'hello barney!'
      *
      * // using a custom template delimiters
      * _.templateSettings = {
@@ -15371,9 +16174,9 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * // => 'hello mustache!'
      *
      * // using the `imports` option to import jQuery
-     * var list = '<% $.each(people, function(name) { %><li><%- name %></li><% }); %>';
-     * _.template(list, { 'people': ['moe', 'larry'] }, { 'imports': { '$': jQuery } });
-     * // => '<li>moe</li><li>larry</li>'
+     * var list = '<% jq.each(people, function(name) { %><li><%- name %></li><% }); %>';
+     * _.template(list, { 'people': ['fred', 'barney'] }, { 'imports': { 'jq': jQuery } });
+     * // => '<li>fred</li><li>barney</li>'
      *
      * // using the `sourceURL` option to specify a custom sourceURL for the template
      * var compiled = _.template('hello <%= name %>', null, { 'sourceURL': '/basic/greeting.jst' });
@@ -15403,7 +16206,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
       // and Laura Doktorova's doT.js
       // https://github.com/olado/doT
       var settings = lodash.templateSettings;
-      text || (text = '');
+      text = String(text || '');
 
       // avoid missing dependencies when `iteratorTemplate` is not defined
       options = defaults({}, options, settings);
@@ -15544,8 +16347,8 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {string} Returns the unescaped string.
      * @example
      *
-     * _.unescape('Moe, Larry &amp; Curly');
-     * // => 'Moe, Larry & Curly'
+     * _.unescape('Fred, Barney &amp; Pebbles');
+     * // => 'Fred, Barney & Pebbles'
      */
     function unescape(string) {
       return string == null ? '' : String(string).replace(reEscapedHtml, unescapeHtmlChar);
@@ -15585,18 +16388,18 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {Object} Returns the wrapper object.
      * @example
      *
-     * var stooges = [
-     *   { 'name': 'moe', 'age': 40 },
-     *   { 'name': 'larry', 'age': 50 },
-     *   { 'name': 'curly', 'age': 60 }
+     * var characters = [
+     *   { 'name': 'barney',  'age': 36 },
+     *   { 'name': 'fred',    'age': 40 },
+     *   { 'name': 'pebbles', 'age': 1 }
      * ];
      *
-     * var youngest = _.chain(stooges)
+     * var youngest = _.chain(characters)
      *     .sortBy('age')
-     *     .map(function(stooge) { return stooge.name + ' is ' + stooge.age; })
+     *     .map(function(chr) { return chr.name + ' is ' + chr.age; })
      *     .first()
      *     .value();
-     * // => 'moe is 40'
+     * // => 'pebbles is 1'
      */
     function chain(value) {
       value = new lodashWrapper(value);
@@ -15619,12 +16422,10 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @example
      *
      * _([1, 2, 3, 4])
-     *  .filter(function(num) { return num % 2 == 0; })
-     *  .tap(function(array) { console.log(array); })
-     *  .map(function(num) { return num * num; })
+     *  .tap(function(array) { array.pop(); })
+     *  .reverse()
      *  .value();
-     * // => // [2, 4] (logged)
-     * // => [4, 16]
+     * // => [3, 2, 1]
      */
     function tap(value, interceptor) {
       interceptor(value);
@@ -15640,21 +16441,21 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @returns {*} Returns the wrapper object.
      * @example
      *
-     * var stooges = [
-     *   { 'name': 'moe', 'age': 40 },
-     *   { 'name': 'larry', 'age': 50 }
+     * var characters = [
+     *   { 'name': 'barney', 'age': 36 },
+     *   { 'name': 'fred',   'age': 40 }
      * ];
      *
      * // without explicit chaining
-     * _(stooges).first();
-     * // => { 'name': 'moe', 'age': 40 }
+     * _(characters).first();
+     * // => { 'name': 'barney', 'age': 36 }
      *
      * // with explicit chaining
-     * _(stooges).chain()
+     * _(characters).chain()
      *   .first()
      *   .pick('age')
-     *   .value()
-     * // => { 'age': 40 }
+     *   .value();
+     * // => { 'age': 36 }
      */
     function wrapperChain() {
       this.__chain__ = true;
@@ -15706,7 +16507,9 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     lodash.chain = chain;
     lodash.compact = compact;
     lodash.compose = compose;
+    lodash.constant = constant;
     lodash.countBy = countBy;
+    lodash.create = create;
     lodash.createCallback = createCallback;
     lodash.curry = curry;
     lodash.debounce = debounce;
@@ -15731,6 +16534,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     lodash.invoke = invoke;
     lodash.keys = keys;
     lodash.map = map;
+    lodash.mapValues = mapValues;
     lodash.max = max;
     lodash.memoize = memoize;
     lodash.merge = merge;
@@ -15742,6 +16546,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     lodash.partialRight = partialRight;
     lodash.pick = pick;
     lodash.pluck = pluck;
+    lodash.property = property;
     lodash.pull = pull;
     lodash.range = range;
     lodash.reject = reject;
@@ -15760,6 +16565,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     lodash.where = where;
     lodash.without = without;
     lodash.wrap = wrap;
+    lodash.xor = xor;
     lodash.zip = zip;
     lodash.zipObject = zipObject;
 
@@ -15816,6 +16622,8 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     lodash.lastIndexOf = lastIndexOf;
     lodash.mixin = mixin;
     lodash.noConflict = noConflict;
+    lodash.noop = noop;
+    lodash.now = now;
     lodash.parseInt = parseInt;
     lodash.random = random;
     lodash.reduce = reduce;
@@ -15839,20 +16647,15 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     lodash.include = contains;
     lodash.inject = reduce;
 
-    forOwn(lodash, function(func, methodName) {
-      if (!lodash.prototype[methodName]) {
-        lodash.prototype[methodName] = function() {
-          var args = [this.__wrapped__],
-              chainAll = this.__chain__;
-
-          push.apply(args, arguments);
-          var result = func.apply(lodash, args);
-          return chainAll
-            ? new lodashWrapper(result, chainAll)
-            : result;
-        };
-      }
-    });
+    mixin(function() {
+      var source = {}
+      forOwn(lodash, function(func, methodName) {
+        if (!lodash.prototype[methodName]) {
+          source[methodName] = func;
+        }
+      });
+      return source;
+    }(), false);
 
     /*--------------------------------------------------------------------------*/
 
@@ -15888,7 +16691,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
      * @memberOf _
      * @type string
      */
-    lodash.VERSION = '2.2.1';
+    lodash.VERSION = '2.4.1';
 
     // add "Chaining" functions to the wrapper
     lodash.prototype.chain = wrapperChain;
@@ -15909,7 +16712,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
       };
     });
 
-    // add `Array` functions that return the wrapped value
+    // add `Array` functions that return the existing wrapped value
     forEach(['push', 'reverse', 'sort', 'unshift'], function(methodName) {
       var func = arrayRef[methodName];
       lodash.prototype[methodName] = function() {
@@ -15934,12 +16737,11 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
   // expose Lo-Dash
   var _ = runInContext();
 
-  // some AMD build optimizers, like r.js, check for condition patterns like the following:
+  // some AMD build optimizers like r.js check for condition patterns like the following:
   if (typeof define == 'function' && typeof define.amd == 'object' && define.amd) {
     // Expose Lo-Dash to the global object even when an AMD loader is present in
-    // case Lo-Dash was injected by a third-party script and not intended to be
-    // loaded as a module. The global assignment can be reverted in the Lo-Dash
-    // module by its `noConflict()` method.
+    // case Lo-Dash is loaded with a RequireJS shim config.
+    // See http://requirejs.org/docs/api.html#config-shim
     root._ = _;
 
     // define as an anonymous module so, through path mapping, it can be
@@ -15965,12 +16767,12 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
   }
 }.call(this));
 
-},{}],38:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 // This file is just added for convenience so this repository can be
 // directly checked out into a project's deps folder
 module.exports = require('./lib/async');
 
-},{"./lib/async":39}],39:[function(require,module,exports){
+},{"./lib/async":40}],40:[function(require,module,exports){
 var process=require("__browserify_process");/*global setTimeout: false, console: false */
 (function () {
 
@@ -16664,8 +17466,8 @@ var process=require("__browserify_process");/*global setTimeout: false, console:
 
 }());
 
-},{"__browserify_process":63}],40:[function(require,module,exports){
-var process=require("__browserify_process"),__filename="/../node_modules/serialport/node_modules/bindings/bindings.js";
+},{"__browserify_process":64}],41:[function(require,module,exports){
+var process=require("__browserify_process"),__filename="/node_modules/johnny-five/node_modules/serialport/node_modules/bindings/bindings.js";
 /**
  * Module dependencies.
  */
@@ -16825,13 +17627,12 @@ exports.getRoot = function getRoot (file) {
   }
 }
 
-},{"__browserify_process":63,"fs":52,"path":53}],41:[function(require,module,exports){
-var process=require("__browserify_process");"use strict";
-/*global process require exports console */
+},{"__browserify_process":64,"fs":53,"path":54}],42:[function(require,module,exports){
+var process=require("__browserify_process"),Buffer=require("__browserify_Buffer").Buffer;/*jslint node: true */
+"use strict";
 
 // Copyright 2011 Chris Williams <chris@iterativedesigns.com>
 
-var Buffer = require('buffer').Buffer;
 var SerialPortBinding = require("bindings")("serialport.node");
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
@@ -16842,482 +17643,551 @@ var async = require('async');
 var child_process = require('child_process');
 
 
-// Removing check for valid BaudRates due to ticket: #140
-// var BAUDRATES = [500000, 230400, 115200, 57600, 38400, 19200, 9600, 4800, 2400, 1800, 1200, 600, 300, 200, 150, 134, 110, 75, 50];
+function SerialPortFactory() {
 
+  var factory = this;
 
-//  VALIDATION ARRAYS
-var DATABITS = [5, 6, 7, 8];
-var STOPBITS = [1, 1.5, 2];
-var PARITY = ['none', 'even', 'mark', 'odd', 'space'];
-var FLOWCONTROLS = ["XON", "XOFF", "XANY", "RTSCTS"];
-
-
-// Stuff from ReadStream, refactored for our usage:
-var kPoolSize = 40 * 1024;
-var kMinPoolSpace = 128;
-var pool;
-
-function allocNewPool() {
-  pool = new Buffer(kPoolSize);
-  pool.used = 0;
-}
-
-
-var parsers = {
-  raw: function (emitter, buffer) {
-    emitter.emit("data", buffer);
-  },
-  //encoding: ascii utf8 utf16le ucs2 base64 binary hex
-  //More: http://nodejs.org/api/buffer.html#buffer_buffer
-  readline: function (delimiter, encoding) {
-    if (typeof delimiter === "undefined" || delimiter === null) { delimiter = "\r"; }
-    if (typeof encoding  === "undefined" || encoding  === null) { encoding  = "utf8"; }
-    // Delimiter buffer saved in closure
-    var data = "";
-    return function (emitter, buffer) {
-      // Collect data
-      data += buffer.toString(encoding);
-      // Split collected data by delimiter
-      var parts = data.split(delimiter)
-      data = parts.pop();
-      parts.forEach(function (part, i, array) {
-        emitter.emit('data', part);
-      });
-    };
-  }
-};
-
-// The default options, can be overwritten in the 'SerialPort' constructor
-var _options = {
-  baudrate: 9600,
-  parity: 'none',
-  rtscts: false,
-  xon: false,
-  xoff: false,
-  xany: false,
-  databits: 8,
-  stopbits: 1,  
-  buffersize: 256,
-  parser: parsers.raw
-};
-function SerialPort (path, options, openImmediately) {
-  options = options || {};
-  openImmediately = (openImmediately === undefined || openImmediately === null) ? true : openImmediately;
-
-  var self = this;
-
-  stream.Stream.call(this);
-
-  options.baudRate = options.baudRate || options.baudrate || _options.baudrate;
   // Removing check for valid BaudRates due to ticket: #140
-  // if (BAUDRATES.indexOf(options.baudrate) == -1) {
-  //   throw new Error('Invalid "baudrate": ' + options.baudrate);
-  // }
+  // var BAUDRATES = [500000, 230400, 115200, 57600, 38400, 19200, 9600, 4800, 2400, 1800, 1200, 600, 300, 200, 150, 134, 110, 75, 50];
 
-  options.dataBits = options.dataBits || options.databits || _options.databits;
-  if (DATABITS.indexOf(options.dataBits) == -1) {
-    throw new Error('Invalid "databits": ' + options.dataBits);
-  }
- 
-  options.stopBits = options.stopBits || options.stopbits || _options.stopbits;
-  if (STOPBITS.indexOf(options.stopBits) == -1) {
-    throw new Error('Invalid "stopbits": ' + options.stopbits);
-  }
-  
-  options.parity = options.parity || _options.parity;
-  if (PARITY.indexOf(options.parity) == -1) {
-    throw new Error('Invalid "parity": ' + options.parity);
-  }
-  if (!path) {
-    throw new Error('Invalid port specified: ' + path);
-  }
+  //  VALIDATION ARRAYS
+  var DATABITS = [5, 6, 7, 8];
+  var STOPBITS = [1, 1.5, 2];
+  var PARITY = ['none', 'even', 'mark', 'odd', 'space'];
+  var FLOWCONTROLS = ["XON", "XOFF", "XANY", "RTSCTS"];
 
-  // flush defaults, then update with provided details
-  options.rtscts = _options.rtscts;
-  options.xon = _options.xon;
-  options.xoff = _options.xoff;
-  options.xany = _options.xany;
-  
-  if (options.flowControl || options.flowcontrol) {
-    var fc = options.flowControl || options.flowcontrol;
 
-    if (typeof fc == 'boolean') {
-      options.rtscts = true;
-    } else {
-      fc.forEach(function (flowControl) {
-        var fcup = flowControl.toUpperCase();
-        var idx = FLOWCONTROLS.indexOf(fcup);
-        if (idx < 0) {
-          throw new Error('Invalid "flowControl": ' + fcup + ". Valid options: "+FLOWCONTROLS.join(", "));
-        } else {
+  // Stuff from ReadStream, refactored for our usage:
+  var kPoolSize = 40 * 1024;
+  var kMinPoolSpace = 128;
 
-          // "XON", "XOFF", "XANY", "DTRDTS", "RTSCTS"
-          switch (idx) {
-            case 0: options.xon = true; break;
-            case 1: options.xoff = true; break;
-            case 2: options.xany = true;  break;
-            case 3: options.rtscts = true; break;
-          }
-        }
-      })
+  var parsers = {
+    raw: function (emitter, buffer) {
+      emitter.emit("data", buffer);
+    },
+    //encoding: ascii utf8 utf16le ucs2 base64 binary hex
+    //More: http://nodejs.org/api/buffer.html#buffer_buffer
+    readline: function (delimiter, encoding) {
+      if (typeof delimiter === "undefined" || delimiter === null) { delimiter = "\r"; }
+      if (typeof encoding  === "undefined" || encoding  === null) { encoding  = "utf8"; }
+      // Delimiter buffer saved in closure
+      var data = "";
+      return function (emitter, buffer) {
+        // Collect data
+        data += buffer.toString(encoding);
+        // Split collected data by delimiter
+        var parts = data.split(delimiter);
+        data = parts.pop();
+        parts.forEach(function (part, i, array) {
+          emitter.emit('data', part);
+        });
+      };
     }
-  }
-
-  options.bufferSize = options.bufferSize || options.buffersize || _options.buffersize;
-  options.parser = options.parser || _options.parser;
-
-  options.dataCallback = function (data) {
-    options.parser(self, data);
   };
 
-  // options.dataReadyCallback = function () {
-  //   self.readStream._read(4024);
-  // };
-
-  options.errorCallback = function (err) {
-    // console.log("sp err:", JSON.stringify(err));
-    self.emit('error', {spErr: err});
-  };
-  options.disconnectedCallback = function () {
-    if (self.closing) {
-      return;
-    }
-    self.emit('error', new Error("Disconnected"));
-    // self.close();
+  // The default options, can be overwritten in the 'SerialPort' constructor
+  var _options = {
+    baudrate: 9600,
+    parity: 'none',
+    rtscts: false,
+    xon: false,
+    xoff: false,
+    xany: false,
+    databits: 8,
+    stopbits: 1,
+    buffersize: 256,
+    parser: parsers.raw
   };
 
-  if (process.platform == 'win32') {
-    path = '\\\\.\\' + path;
-  } else {
-    // All other platforms:
-    this.fd = null;
-    this.paused = true;
-    this.bufferSize = options.bufferSize || 64 * 1024;
-    this.readable = true;
-    this.reading = false;
+  function SerialPort (path, options, openImmediately, callback) {
 
-    if (options.encoding)
-      this.setEncoding(this.encoding);
-  }
-
-  this.options = options;
-  this.path = path;
-
-  if (openImmediately) {
-    process.nextTick(function () {
-      self.open();
-    });
-  }
-}
-
-util.inherits(SerialPort, stream.Stream);
-
-SerialPort.prototype.open = function (callback) {
-  var self = this;
-  SerialPortBinding.open(this.path, this.options, function (err, fd) {
-    self.fd = fd;
-    if (err) {
-      self.emit('error', {openErr: err});
-      if (callback) { callback(err); }
-      return;
-    }
-    if (process.platform !== 'win32') {
-      // self.readStream = new SerialStream(self.fd, { bufferSize: self.options.bufferSize });
-      // self.readStream.on("data", self.options.dataCallback);
-      // self.readStream.on("error", self.options.errorCallback);
-      // self.readStream.on("close", function () {
-      //   self.close();
-      // });
-      // self.readStream.on("end", function () {
-      //   console.log(">>END");
-      //   self.emit('end');
-      // });
-      // self.readStream.resume();
-      self.paused = false;
-      self.serialPoller = new SerialPortBinding.SerialportPoller(self.fd, function() {self._read();});
-      self.serialPoller.start();
-    }
-
-    self.emit('open');
-    if (callback) { callback(err); }
-  });
-};
-
-SerialPort.prototype.write = function (buffer, callback) {
-  var self = this;
-  if (!this.fd) {
-    if (callback) {
-      return callback(new Error("Serialport not open."));
-    } else {
-      return;
-    }
-  }
-
-  if (!Buffer.isBuffer(buffer)) {
-    buffer = new Buffer(buffer);
-  }
-  SerialPortBinding.write(this.fd, buffer, function (err, results) {
-    if (err) {
-      self.emit('error', {spWriteErr: err});
-    }
-    if (callback) {
-      callback(err, results);
-    }
-  });
-};
-
-if (process.platform !== 'win32') {
-  SerialPort.prototype._read = function() {
     var self = this;
 
-    // console.log(">>READ");
-    if (!self.readable || self.paused || self.reading) return;
-
-    self.reading = true;
-
-    if (!pool || pool.length - pool.used < kMinPoolSpace) {
-      // discard the old pool. Can't add to the free list because
-      // users might have refernces to slices on it.
-      pool = null;
-      allocNewPool();
+    var args = Array.prototype.slice.call(arguments);
+    callback = args.pop();
+    if (typeof(callback) !== 'function') {
+      callback = null;
     }
 
-    // Grab another reference to the pool in the case that while we're in the
-    // thread pool another read() finishes up the pool, and allocates a new
-    // one.
-    var thisPool = pool;
-    var toRead = Math.min(pool.length - pool.used, ~~self.bufferSize);
-    var start = pool.used;
+    options = options || {};
+    openImmediately = (openImmediately === undefined || openImmediately === null) ? true : openImmediately;
 
-    function afterRead(err, bytesRead, readPool, bytesRequested) {
-      self.reading = false;
+    stream.Stream.call(this);
+
+    callback = callback || function (err) {
       if (err) {
-        if (err.code && err.code == 'EAGAIN') {
+        factory.emit('error', err);
+      }
+    };
+
+    var err;
+
+    options.baudRate = options.baudRate || options.baudrate || _options.baudrate;
+    // Removing check for valid BaudRates due to ticket: #140
+    // if (BAUDRATES.indexOf(options.baudrate) == -1) {
+    //   throw new Error('Invalid "baudrate": ' + options.baudrate);
+    // }
+
+    options.dataBits = options.dataBits || options.databits || _options.databits;
+    if (DATABITS.indexOf(options.dataBits) == -1) {
+      err = new Error('Invalid "databits": ' + options.dataBits);
+      callback(err);
+      return;
+    }
+
+    options.stopBits = options.stopBits || options.stopbits || _options.stopbits;
+    if (STOPBITS.indexOf(options.stopBits) == -1) {
+      err = new Error('Invalid "stopbits": ' + options.stopbits);
+      callback(err);
+      return;
+    }
+
+    options.parity = options.parity || _options.parity;
+    if (PARITY.indexOf(options.parity) == -1) {
+      err = new Error('Invalid "parity": ' + options.parity);
+      callback(err);
+      return;
+    }
+    if (!path) {
+      err = new Error('Invalid port specified: ' + path);
+      callback(err);
+      return;
+    }
+
+    // flush defaults, then update with provided details
+    options.rtscts = _options.rtscts;
+    options.xon = _options.xon;
+    options.xoff = _options.xoff;
+    options.xany = _options.xany;
+
+    if (options.flowControl || options.flowcontrol) {
+      var fc = options.flowControl || options.flowcontrol;
+
+      if (typeof fc == 'boolean') {
+        options.rtscts = true;
+      } else {
+        fc.forEach(function (flowControl) {
+          var fcup = flowControl.toUpperCase();
+          var idx = FLOWCONTROLS.indexOf(fcup);
+          if (idx < 0) {
+            var err = new Error('Invalid "flowControl": ' + fcup + ". Valid options: "+FLOWCONTROLS.join(", "));
+            callback(err);
+            return;
+          } else {
+
+            // "XON", "XOFF", "XANY", "DTRDTS", "RTSCTS"
+            switch (idx) {
+              case 0: options.xon = true; break;
+              case 1: options.xoff = true; break;
+              case 2: options.xany = true;  break;
+              case 3: options.rtscts = true; break;
+            }
+          }
+        });
+      }
+    }
+
+    options.bufferSize = options.bufferSize || options.buffersize || _options.buffersize;
+    options.parser = options.parser || _options.parser;
+
+    options.dataCallback = options.dataCallback || function (data) {
+      options.parser(self, data);
+    };
+
+    // options.dataReadyCallback = function () {
+    //   self.readStream._read(4024);
+    // };
+
+    options.disconnectedCallback = options.disconnectedCallback || function () {
+      if (self.closing) {
+        return;
+      }
+      var err = new Error("Disconnected");
+      callback(err);
+      // self.close();
+    };
+
+    if (process.platform == 'win32') {
+      path = '\\\\.\\' + path;
+    } else {
+      // All other platforms:
+      this.fd = null;
+      this.paused = true;
+      this.bufferSize = options.bufferSize || 64 * 1024;
+      this.readable = true;
+      this.reading = false;
+
+      if (options.encoding)
+        this.setEncoding(this.encoding);
+    }
+
+    this.options = options;
+    this.path = path;
+
+    if (openImmediately) {
+      process.nextTick(function () {
+        self.open(callback);
+      });
+    }
+  }
+
+  util.inherits(SerialPort, stream.Stream);
+
+  SerialPort.prototype.open = function (callback) {
+    var self = this;
+    this.paused = true;
+    this.readable = true;
+    this.reading = false;
+    factory.SerialPortBinding.open(this.path, this.options, function (err, fd) {
+      self.fd = fd;
+      if (err) {
+        if (callback) {
+          callback(err);
+        } else {
+          self.emit('error', err);
+        }
+        return;
+      }
+      if (process.platform !== 'win32') {
+        // self.readStream = new SerialStream(self.fd, { bufferSize: self.options.bufferSize });
+        // self.readStream.on("data", self.options.dataCallback);
+        // self.readStream.on("error", self.options.errorCallback);
+        // self.readStream.on("close", function () {
+        //   self.close();
+        // });
+        // self.readStream.on("end", function () {
+        //   console.log(">>END");
+        //   self.emit('end');
+        // });
+        // self.readStream.resume();
+        self.paused = false;
+        self.serialPoller = new factory.SerialPortBinding.SerialportPoller(self.fd, function() {self._read();});
+        self.serialPoller.start();
+      }
+
+      self.emit('open');
+      if (callback) { callback(); }
+    });
+  };
+
+  SerialPort.prototype.write = function (buffer, callback) {
+    var self = this;
+    if (!this.fd) {
+      var err = new Error("Serialport not open.");
+      if (callback) {
+        callback(err);
+      } else {
+        self.emit('error', err);
+      }
+      return;
+    }
+
+    if (!Buffer.isBuffer(buffer)) {
+      buffer = new Buffer(buffer);
+    }
+    factory.SerialPortBinding.write(this.fd, buffer, function (err, results) {
+      if (callback) {
+        callback(err, results);
+      } else {
+        if (err) {
+          self.emit('error', err);
+        }
+      }
+    });
+  };
+
+  if (process.platform !== 'win32') {
+    SerialPort.prototype._read = function() {
+      var self = this;
+
+      // console.log(">>READ");
+      if (!self.readable || self.paused || self.reading) return;
+
+      self.reading = true;
+
+      if (!self.pool || self.pool.length - self.pool.used < kMinPoolSpace) {
+        // discard the old pool. Can't add to the free list because
+        // users might have refernces to slices on it.
+        self.pool = null;
+
+        // alloc new pool
+        self.pool = new Buffer(kPoolSize);
+        self.pool.used = 0;
+      }
+
+      // Grab another reference to the pool in the case that while we're in the
+      // thread pool another read() finishes up the pool, and allocates a new
+      // one.
+      var thisPool = self.pool;
+      var toRead = Math.min(self.pool.length - self.pool.used, ~~self.bufferSize);
+      var start = self.pool.used;
+
+      function afterRead(err, bytesRead, readPool, bytesRequested) {
+        self.reading = false;
+        if (err) {
+          if (err.code && err.code == 'EAGAIN') {
+            if (self.fd >= 0)
+              self.serialPoller.start();
+          } else {
+            self.fd = null;
+            self.emit('error', err);
+            self.readable = false;
+          }
+        }
+
+        // Since we will often not read the number of bytes requested,
+        // let's mark the ones we didn't need as available again.
+        self.pool.used -= bytesRequested - bytesRead;
+
+        // console.log(">>ACTUALLY READ: ", bytesRead);
+
+        if (bytesRead === 0) {
           if (self.fd >= 0)
             self.serialPoller.start();
         } else {
-          self.fd = null;
-          self.options.errorCallback(err);
-          self.readable = false;
-          return;
+          var b = self.pool.slice(start, start + bytesRead);
+
+          // do not emit events if the stream is paused
+          if (self.paused) {
+            self.buffer = Buffer.concat([self.buffer, b]);
+            return;
+          } else {
+            self._emitData(b);
+          }
+
+          // do not emit events anymore after we declared the stream unreadable
+          if (!self.readable) return;
+
+          self._read();
         }
       }
 
-      // Since we will often not read the number of bytes requested,
-      // let's mark the ones we didn't need as available again.
-      pool.used -= bytesRequested - bytesRead;
+      // debug this device's pool offset
+      // console.log(self.path + ' >> POOL OFFSET: ', self.pool.used);
 
-      // console.log(">>ACTUALLY READ: ", bytesRead);
+      // console.log(">>REQUEST READ: ", toRead);
+      fs.read(self.fd, self.pool, self.pool.used, toRead, self.pos, function(err, bytesRead){
+        var readPool = self.pool;
+        var bytesRequested = toRead;
+        afterRead(err, bytesRead, readPool, bytesRequested);}
+      );
 
-      if (bytesRead === 0) {
-        if (self.fd >= 0)
-          self.serialPoller.start();
-      } else {
-        var b = thisPool.slice(start, start + bytesRead);
+      self.pool.used += toRead;
+    };
 
-        // do not emit events if the stream is paused
-        if (self.paused) {
-          self.buffer = Buffer.concat([self.buffer, b]);
-          return;
-        } else {
-          self._emitData(b);
-        }
-  
-        // do not emit events anymore after we declared the stream unreadable
-        if (!self.readable) return;
-  
-        self._read();
+
+    SerialPort.prototype._emitData = function(d) {
+      var self = this;
+      // if (self._decoder) {
+      //   var string = self._decoder.write(d);
+      //   if (string.length) self.options.dataCallback(string);
+      // } else {
+        self.options.dataCallback(d);
+      // }
+    };
+
+    SerialPort.prototype.pause = function() {
+      var self = this;
+      self.paused = true;
+    };
+
+
+    SerialPort.prototype.resume = function() {
+      var self = this;
+      self.paused = false;
+
+      if (self.buffer) {
+        var buffer = self.buffer;
+        self.buffer = null;
+        self._emitData(buffer);
       }
-    }
 
-    // console.log(">>REQUEST READ: ", toRead);
-    fs.read(self.fd, pool, pool.used, toRead, self.pos, function(err, bytesRead){
-      var readPool = pool;
-      var bytesRequested = toRead;
-      afterRead(err, bytesRead, readPool, bytesRequested);}
-    );
+      // No longer open?
+      if (null === self.fd)
+        return;
 
-    pool.used += toRead;
-  };
+      self._read();
+    };
 
-  
-  SerialPort.prototype._emitData = function(d) {
+  } // if !'win32'
+
+  SerialPort.prototype.close = function (callback) {
     var self = this;
-    // if (self._decoder) {
-    //   var string = self._decoder.write(d);
-    //   if (string.length) self.options.dataCallback(string);
-    // } else {
-      self.options.dataCallback(d);
-    // }
-  };
-  
-  SerialPort.prototype.pause = function() {
-    var self = this;
-    self.paused = true;
-  };
 
+    var fd = self.fd;
 
-  SerialPort.prototype.resume = function() {
-    var self = this;
-    self.paused = false;
-
-    if (self.buffer) {
-      var buffer = self.buffer;
-      self.buffer = null;
-      self._emitData(buffer);
-    }
-
-    // No longer open?
-    if (null == self.fd)
-      return;
-
-    self._read();
-  };
-
-} // if !'win32'
-
-SerialPort.prototype.close = function (callback) {
-  var self = this;
-  
-  var fd = self.fd;
-
-  if (self.closing) {
-    return;
-  }
-  if (!fd) {
-    if (callback) {
-      return callback(new Error("Serialport not open."));
-    } else {
+    if (self.closing) {
       return;
     }
-  }
-
-  self.closing = true;
-  try {
-    if (self.readStream) {
-      // Make sure we clear the readStream's fd, or it'll try to close() it.
-      // We already close()d it.
-      self.readStream.fd = null;
-      self.readStream.destroy();
-    }
-
-    SerialPortBinding.close(fd, function (err) {
-      if (err) {
-        self.emit('error', err);
-      }
+    if (!fd) {
+      var err = new Error("Serialport not open.");
       if (callback) {
         callback(err);
+      } else {
+        self.emit('error', err);
       }
-      self.emit('close');
-      self.removeAllListeners();
-      self.closing = false;
-      self.fd = 0;
-      
-      if (process.platform !== 'win32') {
-        self.readable = false;
-        self.serialPoller.close();
-      }
-    });
-  } catch (ex) {
-    self.closing = false;
-    throw ex;
-  }
-};
-
-function listUnix (callback) {
-  fs.readdir("/dev/serial/by-id", function (err, files) {
-    if (err) {
-      // if this directory is not found this could just be because it's not plugged in
-      if (err.errno === 34) {
-        return callback(null, []);
-      }
-      return console.log(err);
-    }
-    var dirName = "/dev/serial/by-id";
-    async.map(files, function (file, callback) {
-      var fileName = path.join(dirName, file);
-      fs.readlink(fileName, function (err, link) {
-        if (err) {
-          return callback(err);
-        }
-        link = path.resolve(dirName, link);
-        callback(null, {
-          comName: link,
-          manufacturer: undefined,
-          pnpId: file
-        });
-      });
-    // Suspect code per ticket: #104 removed for deeper inspection.
-    // fs.readdir("/dev/serial/by-path", function(err_path, paths) {
-    //   if (err_path) {
-    //     if (err.errno === 34) return callback(null, []);
-    //     return console.log(err);
-    //   }
-
-    //   var dirName, items;
-    //   //check if multiple devices of the same id are connected
-    //   if (files.length !== paths.length) {
-    //     dirName = "/dev/serial/by-path";
-    //     items = paths;
-    //   } else {
-    //     dirName = "/dev/serial/by-id";
-    //     items = files;
-    //   }
-
-    //   async.map(items, function (file, callback) {
-    //     var fileName = path.join(dirName, file);
-    //     fs.readlink(fileName, function (err, link) {
-    //       if (err) {
-    //         return callback(err);
-    //       }
-    //       link = path.resolve(dirName, link);
-    //       callback(null, {
-    //         comName: link,
-    //         manufacturer: undefined,
-    //         pnpId: file
-    //       });
-    //     });
-    //   }, callback);
-    }, callback);
-  });
-}
-  
-
-if (process.platform === 'win32') {
-  exports.list = SerialPortBinding.list
-} else if (process.platform === 'darwin') {
-  exports.list = SerialPortBinding.list;
-} else {
-  exports.list = listUnix;
-}
-
-SerialPort.prototype.flush = function (callback) {
-  var self = this;
-  var fd = self.fd;
-
-  if (!fd) {
-    if (callback) {
-      return callback(new Error("Serialport not open."));
-    } else {
       return;
     }
+
+    self.closing = true;
+    try {
+      if (self.readStream) {
+        // Make sure we clear the readStream's fd, or it'll try to close() it.
+        // We already close()d it.
+        self.readStream.fd = null;
+        self.readStream.destroy();
+      }
+
+      factory.SerialPortBinding.close(fd, function (err) {
+
+        if (err) {
+          if (callback) {
+            callback(err);
+          } else {
+            self.emit('error', err);
+          }
+          return;
+        }
+
+        self.emit('close');
+        self.removeAllListeners();
+        self.closing = false;
+        self.fd = 0;
+
+        if (process.platform !== 'win32') {
+          self.readable = false;
+          self.serialPoller.close();
+        }
+
+        if (callback) {
+          callback();
+        }
+      });
+    } catch (ex) {
+      self.closing = false;
+      if (callback) {
+        callback(ex);
+      } else {
+        self.emit('error', ex);
+      }
+    }
+  };
+
+  function listUnix (callback) {
+    fs.readdir("/dev/serial/by-id", function (err, files) {
+      if (err) {
+        // if this directory is not found this could just be because it's not plugged in
+        if (err.errno === 34) {
+          return callback(null, []);
+        }
+
+        if (callback) {
+          callback(err);
+        } else {
+          factory.emit('error', err);
+        }
+        return;
+      }
+
+      var dirName = "/dev/serial/by-id";
+      async.map(files, function (file, callback) {
+        var fileName = path.join(dirName, file);
+        fs.readlink(fileName, function (err, link) {
+          if (err) {
+            if (callback) {
+              callback(err);
+            } else {
+              factory.emit('error', err);
+            }
+            return;
+          }
+
+          link = path.resolve(dirName, link);
+          callback(null, {
+            comName: link,
+            manufacturer: undefined,
+            pnpId: file
+          });
+        });
+      // Suspect code per ticket: #104 removed for deeper inspection.
+      // fs.readdir("/dev/serial/by-path", function(err_path, paths) {
+      //   if (err_path) {
+      //     if (err.errno === 34) return callback(null, []);
+      //     return console.log(err);
+      //   }
+
+      //   var dirName, items;
+      //   //check if multiple devices of the same id are connected
+      //   if (files.length !== paths.length) {
+      //     dirName = "/dev/serial/by-path";
+      //     items = paths;
+      //   } else {
+      //     dirName = "/dev/serial/by-id";
+      //     items = files;
+      //   }
+
+      //   async.map(items, function (file, callback) {
+      //     var fileName = path.join(dirName, file);
+      //     fs.readlink(fileName, function (err, link) {
+      //       if (err) {
+      //         return callback(err);
+      //       }
+      //       link = path.resolve(dirName, link);
+      //       callback(null, {
+      //         comName: link,
+      //         manufacturer: undefined,
+      //         pnpId: file
+      //       });
+      //     });
+      //   }, callback);
+      }, callback);
+    });
   }
 
-  SerialPortBinding.flush(fd, function (err, result) {
-    if (err) {
-      self.emit('error', err);
-    }
-    if (callback) {
-      callback(err, result);
-    }
-  });
-};
+  SerialPort.prototype.flush = function (callback) {
+    var self = this;
+    var fd = self.fd;
 
-module.exports.SerialPort = SerialPort;
-module.exports.parsers = parsers;
+    if (!fd) {
+      var err = new Error("Serialport not open.");
+      if (callback) {
+        callback(err);
+      } else {
+        self.emit('error', err);
+      }
+      return;
+    }
 
-},{"__browserify_process":63,"async":38,"bindings":40,"buffer":60,"child_process":50,"events":51,"fs":52,"path":53,"stream":55,"util":58}],42:[function(require,module,exports){
+    factory.SerialPortBinding.flush(fd, function (err, result) {
+      if (err) {
+        if (callback) {
+          callback(err, result);
+        } else {
+          self.emit('error', err);
+        }
+      }
+    });
+  };
+
+  factory.SerialPort = SerialPort;
+  factory.parsers = parsers;
+  factory.SerialPortBinding = SerialPortBinding;
+
+  if (process.platform === 'win32') {
+    factory.list = SerialPortBinding.list;
+  } else if (process.platform === 'darwin') {
+    factory.list = SerialPortBinding.list;
+  } else {
+    factory.list = listUnix;
+  }
+
+}
+
+util.inherits(SerialPortFactory, EventEmitter);
+
+module.exports = new SerialPortFactory();
+
+},{"__browserify_Buffer":63,"__browserify_process":64,"async":39,"bindings":41,"child_process":51,"events":52,"fs":53,"path":54,"stream":56,"util":59}],43:[function(require,module,exports){
 var process=require("__browserify_process"),global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};"use strict";
  /*
   * temporal
@@ -17400,7 +18270,7 @@ Task.prototype.stop = function() {
 };
 
 function Queue( tasks ) {
-  var op, cumulative, item, task;
+  var op, cumulative, item, task, ref, refs;
 
   cumulative = 0;
   // Store |this| in the priv WeakMap to
@@ -17409,23 +18279,25 @@ function Queue( tasks ) {
   // done so.
   priv.set( tasks, this );
 
+  refs = [];
+
   while ( tasks.length ) {
     item = tasks.shift();
     op = Object.keys( item ).reduce( Task.deriveOp, "" );
     // console.log( op, item[ op ] );
     cumulative += item[ op ];
 
-    // For the last task, ensure that an "ended" event is
+    // For the last task, ensure that an "end" event is
     // emitted after the final callback is called.
     if ( tasks.length === 0 ) {
       task = item.task;
       item.task = function( temporald ) {
         task.call( this, temporald );
 
-        // Emit the ended event _from_ within the _last_ task
+        // Emit the end event _from_ within the _last_ task
         // defined in the Queue tasks. Use the |tasks| array
         // object as the access key.
-        priv.get( tasks ).emit( "ended", temporald );
+        priv.get( tasks ).emit( "end", temporald );
       };
     }
 
@@ -17433,17 +18305,33 @@ function Queue( tasks ) {
       // When transitioning from a "delay" to a "loop", allow
       // the loop to iterate the amount of time given,
       // but still start at the correct offset.
-      exportable.delay( cumulative - item[ op ], function() {
-        exportable.loop( item[ op ], item.task );
+      ref = exportable.delay( cumulative - item[ op ], function() {
+        ref = exportable.loop( item[ op ], item.task );
+
+        refs.push(ref);
       });
     } else {
       // console.log( op, cumulative );
-      exportable[ op ]( cumulative, item.task );
+      ref = exportable[ op ]( cumulative, item.task );
     }
+
+    refs.push(ref);
   }
+
+  priv.set(this, refs);
 }
 
 util.inherits( Queue, events.EventEmitter );
+
+Queue.prototype.stop = function() {
+  priv.get(this).forEach(function(ref) {
+    ref.stop();
+  });
+
+  this.emit("stop");
+};
+
+
 
 exportable.queue = function( tasks ) {
   return new Queue( tasks );
@@ -17529,18 +18417,21 @@ exportable.wait = exportable.defer = exportable.delay;
 
 exportable.repeat = function( n, ms, callback ) {
   exportable.loop( ms, function( context ) {
+    callback( context );
+
     if ( context.called === n ) {
       this.stop();
-    } else {
-      callback( context );
     }
   });
 };
 
+exportable.clear = function() {
+  queue = {};
+};
 
 module.exports = exportable;
 
-},{"__browserify_process":63,"es6-collections":34,"events":51,"util":58}],43:[function(require,module,exports){
+},{"__browserify_process":64,"es6-collections":34,"events":52,"util":59}],44:[function(require,module,exports){
 
 
 //
@@ -17758,7 +18649,7 @@ if (typeof Object.getOwnPropertyDescriptor === 'function') {
   exports.getOwnPropertyDescriptor = valueObject;
 }
 
-},{}],44:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -17831,7 +18722,7 @@ function onend() {
   timers.setImmediate(shims.bind(this.end, this));
 }
 
-},{"_shims":43,"_stream_readable":46,"_stream_writable":48,"timers":57,"util":58}],45:[function(require,module,exports){
+},{"_shims":44,"_stream_readable":47,"_stream_writable":49,"timers":58,"util":59}],46:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -17874,7 +18765,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-},{"_stream_transform":47,"util":58}],46:[function(require,module,exports){
+},{"_stream_transform":48,"util":59}],47:[function(require,module,exports){
 var process=require("__browserify_process");// Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -18795,7 +19686,7 @@ function endReadable(stream) {
   }
 }
 
-},{"__browserify_process":63,"_shims":43,"buffer":60,"events":51,"stream":55,"string_decoder":56,"timers":57,"util":58}],47:[function(require,module,exports){
+},{"__browserify_process":64,"_shims":44,"buffer":61,"events":52,"stream":56,"string_decoder":57,"timers":58,"util":59}],48:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -19001,7 +19892,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"_stream_duplex":44,"util":58}],48:[function(require,module,exports){
+},{"_stream_duplex":45,"util":59}],49:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -19371,7 +20262,7 @@ function endWritable(stream, state, cb) {
   state.ended = true;
 }
 
-},{"buffer":60,"stream":55,"timers":57,"util":58}],49:[function(require,module,exports){
+},{"buffer":61,"stream":56,"timers":58,"util":59}],50:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -19688,13 +20579,13 @@ assert.doesNotThrow = function(block, /*optional*/message) {
 };
 
 assert.ifError = function(err) { if (err) {throw err;}};
-},{"_shims":43,"util":58}],50:[function(require,module,exports){
+},{"_shims":44,"util":59}],51:[function(require,module,exports){
 
 // not implemented
 // The reason for having an empty file and not throwing is to allow
 // untraditional implementation of this module.
 
-},{}],51:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -19975,9 +20866,9 @@ EventEmitter.listenerCount = function(emitter, type) {
     ret = emitter._events[type].length;
   return ret;
 };
-},{"util":58}],52:[function(require,module,exports){
-module.exports=require(50)
-},{}],53:[function(require,module,exports){
+},{"util":59}],53:[function(require,module,exports){
+module.exports=require(51)
+},{}],54:[function(require,module,exports){
 var process=require("__browserify_process");// Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -20188,9 +21079,9 @@ exports.extname = function(path) {
   return splitPath(path)[3];
 };
 
-},{"__browserify_process":63,"_shims":43,"util":58}],54:[function(require,module,exports){
-module.exports=require(50)
-},{}],55:[function(require,module,exports){
+},{"__browserify_process":64,"_shims":44,"util":59}],55:[function(require,module,exports){
+module.exports=require(51)
+},{}],56:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -20319,7 +21210,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"_stream_duplex":44,"_stream_passthrough":45,"_stream_readable":46,"_stream_transform":47,"_stream_writable":48,"events":51,"util":58}],56:[function(require,module,exports){
+},{"_stream_duplex":45,"_stream_passthrough":46,"_stream_readable":47,"_stream_transform":48,"_stream_writable":49,"events":52,"util":59}],57:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -20512,7 +21403,7 @@ function base64DetectIncompleteChar(buffer) {
   return incomplete;
 }
 
-},{"buffer":60}],57:[function(require,module,exports){
+},{"buffer":61}],58:[function(require,module,exports){
 try {
     // Old IE browsers that do not curry arguments
     if (!setTimeout.call) {
@@ -20631,7 +21522,7 @@ if (!exports.setImmediate) {
   };
 }
 
-},{}],58:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 var Buffer=require("__browserify_Buffer").Buffer;// Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21172,7 +22063,7 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-},{"__browserify_Buffer":62,"_shims":43}],59:[function(require,module,exports){
+},{"__browserify_Buffer":63,"_shims":44}],60:[function(require,module,exports){
 exports.readIEEE754 = function(buffer, offset, isBE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -21258,7 +22149,7 @@ exports.writeIEEE754 = function(buffer, value, offset, isBE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],60:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 var assert;
 exports.Buffer = Buffer;
 exports.SlowBuffer = Buffer;
@@ -22384,7 +23275,7 @@ Buffer.prototype.writeDoubleBE = function(value, offset, noAssert) {
   writeDouble(this, value, offset, true, noAssert);
 };
 
-},{"./buffer_ieee754":59,"assert":49,"base64-js":61}],61:[function(require,module,exports){
+},{"./buffer_ieee754":60,"assert":50,"base64-js":62}],62:[function(require,module,exports){
 (function (exports) {
 	'use strict';
 
@@ -22470,7 +23361,7 @@ Buffer.prototype.writeDoubleBE = function(value, offset, noAssert) {
 	module.exports.fromByteArray = uint8ToBase64;
 }());
 
-},{}],62:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 exports.readIEEE754 = function(buffer, offset, isBE, mLen, nBytes) {
   var e, m,
@@ -24850,7 +25741,7 @@ function hasOwnProperty(obj, prop) {
 },{"_shims":5}]},{},[])
 ;;module.exports=require("buffer-browserify")
 
-},{}],63:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
