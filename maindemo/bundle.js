@@ -60,7 +60,10 @@ app.controller("DemoCtrl", function($scope) {
 
 	$scope.newComponent = new Component($scope.data.componentTypes[0]);
 
+
+
 });
+
 
 
 function Component(type, pin) {
@@ -134,7 +137,6 @@ Component.prototype = {
 	},
 
 };
-
 },{"johnny-five":12}],2:[function(require,module,exports){
 var Board = require("../lib/board.js"),
     events = require("events"),
@@ -8913,7 +8915,6 @@ var Buffer=require("__browserify_Buffer").Buffer;/**
 
 var util = require('util'),
     events = require('events'),
-    chrome = chrome || undefined,
     Encoder7Bit = require('./encoder7bit'),
     OneWireUtils = require('./onewireutils'),
     SerialPort = null;

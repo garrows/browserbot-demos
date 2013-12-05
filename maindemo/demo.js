@@ -59,7 +59,10 @@ app.controller("DemoCtrl", function($scope) {
 
 	$scope.newComponent = new Component($scope.data.componentTypes[0]);
 
+
+
 });
+
 
 
 function Component(type, pin) {
