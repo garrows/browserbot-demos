@@ -1,0 +1,53 @@
+{
+  "name": "browser-bot-demo",
+  "description": "Demo of Johnny-Five running in a Chrome App.",
+  "version": "0.0.1",
+  "homepage": "https://github.com/garrows/browserbot-demos",
+  "author": {
+    "name": "Glen Arrowsmith <glen.arrowsmith@gmail.com>",
+    "email": "glen.arrowsmith@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/rwldrn/johnny-five.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rwldrn/johnny-five/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/rwldrn/johnny-five/blob/master/LICENSE-MIT"
+    }
+  ],
+  "main": "lib/johnny-five",
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "dependencies": {
+    "colors": ">=0.5.1",
+    "firmata": "git://github.com/garrows/firmata.git",
+    "lodash": ">=0.1.0",
+    "es6-collections": ">=0.0.1",
+    "socket.io": "latest",
+    "compulsive": "latest",
+    "temporal": "latest",
+    "descriptor": "latest",
+    "browser-serialport": "latest",
+    "serialport": "latest",
+    "optimist": "~0.5.2",
+    "async": "~0.2.9",
+    "keypress": "latest"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-jshint": "~0.6.0",
+    "grunt-contrib-nodeunit": "~0.2.0",
+    "sinon": "~1.7.3",
+    "grunt-jsbeautifier": "~0.2.2"
+  },
+  "keywords": [],
+  "scripts": {
+    "test" : "grunt"
+  }
+}

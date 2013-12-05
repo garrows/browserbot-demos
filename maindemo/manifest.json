@@ -1,0 +1,24 @@
+{
+  "manifest_version": 2,
+
+  "name": "Johnny Five Demo",
+  "description": "Control an arduino from the browser.",
+
+  "version": "0.0.2",
+  
+  "app": {
+    "background": {
+      "scripts": ["background.js"]
+    }
+  },
+  
+  "icons": {
+    "16": "extentionAssets/icon-16x16.jpeg",
+    "128": "extentionAssets/icon-128x128.jpeg"
+  },
+  
+  "permissions": [
+    "serial"
+  ]
+  
+}

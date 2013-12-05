@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Johnny-Five Browser Demo</title>
+
+	<link rel="stylesheet" href="bootstrap.min.css">
+	<link rel="stylesheet" href="demo.css">
+
+	<script src="angular.js"></script>
+	<script src="bundle.js"></script>
+	
+</head>
+<body ng-app="JohnnyFiveDemo" data-ng-app data-ng-csp>
+
+	<div class="container" ng-controller="DemoCtrl">
+		
+		<div class="page-header">
+			
+			<h1>Johnny-Five Browser Demo</h1>
+
+			<div ng-show="!isConnected">
+				<h3>Waiting for connection.</h3>
+
+				<div ng-show="longWait">
+					Not connecting? Try restarting the app, unplugging and/or restarting chrome. Things seem a bit buggy at the moment.
+				</div>
+			</div>
+
+			<div ng-show="isConnected">
+			
+				<h3>Board is ready. Add some stuff to it.</h3>
+
+				<div class="row" ng-repeat="component in components">
+					
+						<div class="col-sm-3">
+
+							<label for="componentType" class="control-label">Component Type:</label>
+							<input type="text" disabled name="componentType" class="form-control" ng-model="component.type.value"></input>
+
+						</div>
+					
+						<div class="col-sm-3">
+
+							<label for="pin" class="control-label">Pin:</label>
+							<input type="text" disabled name="pin" class="form-control" ng-model="component.pin">
+
+						</div>
+
+						<!-- LED -->
+						<div class="col-sm-3" ng-show="component.type.value == 'Led'">
+
+							<button class="btn btn-success" ng-click="component.toggle()" ng-show="component.isOn == false">Turn on</button>
+							<button class="btn btn-danger" ng-click="component.toggle()" ng-show="component.isOn == true">Turn off</button>
+
+						</div>
+
+						<!-- SERVO -->
+						<div class="col-sm-3" ng-show="component.type.value == 'Servo'">
+
+							<label for="angle" class="control-label">Angle:</label>
+							<input type="range" name="angle" class="form-control"  min="0" max="180" ng-model="component.angle" ng-change="component.setAngle()">
+							
+						</div>
+
+						<!-- SENSOR -->
+						<div class="col-sm-3" ng-show="component.type.value == 'Sensor'">
+
+							<label for="val" class="control-label">Value:</label>
+							<input type="range" disabled name="val" class="form-control"  min="0" max="1024" ng-model="component.val">
+																				
+						</div>
+
+						<!-- BUTTON -->
+						<div class="col-sm-3" ng-show="component.type.value == 'Button'">
+
+							<button class="btn btn-success" disabled ng-show="component.isOn == false">Turn on</button>
+							<button class="btn btn-danger" disabled ng-show="component.isOn == true">Turn off</button>							
+						</div>
+
+					</form>
+
+				</div>
+
+				<div class="row">
+					
+					<form name="addComponentForm" ng-submit="addComponent()">
+
+						<div class="col-sm-3">
+
+							<label for="componentType" class="control-label">Component Type:</label>
+							<select name="componentType" class="form-control" ng-model="newComponent.type" ng-options="type.value for type in data.componentTypes"></select>
+
+						</div>
+					
+						<div class="col-sm-3">
+
+							<label for="pin" class="control-label">Pin:</label>
+							<input type="text" name="pin" value="13" class="form-control" ng-model="newComponent.pin">
+
+						</div>
+
+						<div class="col-sm-3">
+							<button type="submit" class="btn btn-primary">Submit</button>
+						</div>
+
+					</form>
+
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+</body>
+</html>
