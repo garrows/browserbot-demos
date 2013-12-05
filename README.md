@@ -1,9 +1,9 @@
-Browser Bot Demo
-================
+Browser Bot Demos
+=================
 
-Demo of Johnny-Five running in a Chrome App 
+Demos of Johnny-Five running in a Chrome App 
 
-More docs to come...
+More docs and demos to come...
 
 
 Getting Started
