@@ -12,7 +12,7 @@ Getting Started
 ```sh
 cd maindemo
 npm install
-browserify demo.js -o bundle.js
+browserify --ignore-missing demo.js -o bundle.js
 google-chrome --load-and-launch-app=`pwd`
 
 ```
