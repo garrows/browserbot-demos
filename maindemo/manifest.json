@@ -13,8 +13,8 @@
   },
   
   "icons": {
-    "16": "extentionAssets/johnny-five-js16.jpeg",
-    "128": "extentionAssets/johnny-five-js128.jpeg"
+    "16": "extentionAssets/johnny-five-js16.png",
+    "128": "extentionAssets/johnny-five-js128.png"
   },
   
   "permissions": [
